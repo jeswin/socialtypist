@@ -1,0 +1,112 @@
+<script>
+    $(document).ready(function() {
+        _client.makeRestrictedLink('/stories/write', '.main-links .write');
+    });
+</script>
+<div class="container home">
+    <h1><a href="/">Social Typist</a></h1>
+    <p class="desc">Collaborative Writing.</p>
+    <p class="main-links">
+        <a class="read" href="#">Read stories</a>
+        {{#if loginStatus.loggedIn}}
+        | <a class="mystories" href="#">Your stories</a>
+        {{/if}}
+        | <a class="write" href="#">Write a story</a>
+    </p>
+    <div class="content-area">
+        <div class="content-pane wide featured">
+            <h3>Featured</h3>
+            <div class="story">
+                <h2><a href="">Dark and Stormy Night</a></h2>
+                <p class="authors">by <a class="author">Nothe Littany</a> and <a class="author">Laarj Shaiip</a></p>
+                <div class="content">
+                    <p>It was a dark and stormy night; the rain fell in torrents, except at occasional intervals, when it was checked by a violent gust of wind which swept up the streets (for
+                       it is in London that our scene lies), rattling along the house-tops, and fiercely agitating the scanty flame of the lamps that struggled against the darkness.</p>
+                    <p>Through one of the obscurest quarters of London, and among haunts little loved by the gentlemen of the police, a man, evidently of the lowest orders, was wending his
+                       solitary way. He stopped twice or thrice at different shops and houses of a description correspondent with the appearance of the quartier in which they were situated, and
+                       tended inquiry for some article or another which did not seem easily to be met with.</p>                           
+                    <div class="picture">
+                        <img src="http://img.ibtimes.com/www/data/images/full/2011/12/09/202529-me-gusta-rage-face.jpg" />
+                    </div>
+                    <p>All the answers he received were couched in the negative; and as he turned from each door he muttered to himself, in no very elegant phraseology, his disappointment and
+                       discontent. At length, at one house, the landlord, a sturdy butcher, after rendering the same reply the inquirer had hitherto received, added, "But if this vill do as
+                       vell, Dummie, it is quite at your sarvice!" Pausing reflectively for a moment, Dummie responded that he thought the thing proffered might do as well; and thrusting it
+                       into his ample pocket, he strode away with as rapid a motion as the wind and the rain would allow.</p>
+                    <p>He soon came to a nest of low and dingy buildings, at the entrance to which, in half-effaced characters, was written "Thames Court." Halting at the most conspicuous of
+                       these buildings, an inn or alehouse, through the half-closed windows of which blazed out in ruddy comfort the beams of the hospitable hearth, he knocked hastily at the
+                       door. He was admitted by a lady of a certain age, and endowed with a comely rotundity of face and person.</p>
+                </div>
+            </div>
+        </div>
+        <div class="content-pane narrow latest">
+            <h3>Latest</h3>
+            <ul>
+                <li>
+                    <p class="update">
+                        <img src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-snc4/157146_787499687_1418935023_q.jpg" /><a class="author">Ping Pwong</a>
+                        <br />
+                        <a class="story-link" href="">Wonderling can't die</a>
+                        <br />
+                        <span class="subtext">needs 2 collaborators.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="https://encrypted-tbn1.google.com/images?q=tbn:ANd9GcQX6u3UqbYu1V39d3vXI7zmswrgr8o8S7WGw9yiLQ6hpYRvBGS2" /><a class="author">Laarj Shaiip</a>
+                        <br />
+                        <a class="story-link" href="">Hey man nice shot</a>
+                        <br />
+                        <span class="subtext">with Pyg Fatt and Manmodern Singh.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="https://encrypted-tbn1.google.com/images?q=tbn:ANd9GcS_XyTBuhmPzTQr52cx4M6fTK0QBx_mHv-vy_weagR9wIdMLknr" /><a class="author">Monica Shells</a>
+                        <br />
+                        <a class="story-link" href="">Who let the dogs out?</a>
+                        <br />
+                        <span class="subtext">with Stuffy Graf and 2 others.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="http://t0.gstatic.com/images?q=tbn:ANd9GcQO41PfWCFEBy3CvoY9X2aHNtY7sp8G-x92GIWd8IPpORkSp_gm4_1KbuE" /><a class="author">Gone Jeremy</a>
+                        <br />
+                        <a class="story-link" href="">Been there. Done that.</a>
+                        <br />
+                        <span class="subtext">needs 68 collaborators.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="https://encrypted-tbn1.google.com/images?q=tbn:ANd9GcQX6u3UqbYu1V39d3vXI7zmswrgr8o8S7WGw9yiLQ6hpYRvBGS2" /><a class="author">Laarj Shaiip</a>
+                        <br />
+                        <a class="story-link" href="">KFC</a>
+                        <br />
+                        <span class="subtext">with Pyg Fatt and Manmodern Singh.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="http://sebspot.files.wordpress.com/2011/09/bastion-soundtrack.jpg" /><a class="author">Logan Cunningham</a>
+                        <br />
+                        <a class="story-link" href="">Kid pops him good</a>
+                        <br />
+                        <span class="subtext">needs 2 collaborators.</span>
+                    </p>
+                </li>
+                <li>
+                    <p class="update">
+                        <img src="https://encrypted-tbn1.google.com/images?q=tbn:ANd9GcQnK95dH8eAyL8tF76YYNQlZkRq53JNmYMGjwbowVfAvdDexjW_" /><a class="author">George Carlin</a>
+                        <br />
+                        <a class="story-link" href="">Hello World</a>
+                        <br />
+                        <span class="subtext">just got published.</span>
+                    </p>
+                </li>                                                            
+            </ul>                
+        </div>
+        <div class="clear"></div>
+    </div>
+    
+</div>

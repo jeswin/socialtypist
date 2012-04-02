@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+      <head>
+           <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+           <title>Social Typist</title>
+           <link href='http://fonts.googleapis.com/css?family=Bitter|Abril+Fatface' rel='stylesheet' type='text/css'>
+           <link href="/public/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
+           <link href="/public/lib/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" media="screen" />
+           <link href="/public/css/main.css" rel="stylesheet" type="text/css" media="screen" />
+           <script type="text/javascript" src="/public/js/jquery.min.js"></script>
+           <script type="text/javascript" src="/public/js/include.js"></script>
+           <script type="text/javascript" src="/public/lib/bootstrap/js/bootstrap.min.js"></script>
+           <script type="text/javascript" src="/public/js/utils.js"></script>
+           <script type="text/javascript" src="/public/js/client.js"></script>
+      </head>
+    <body>
+        <div class="container login"><p class="span9">{{{loginStatus.header}}}</p></div>
+        <!-- facebook sdk -->
+        <div id="fb-root"></div>
+
+        <script>
+            {{{loginStatus.js}}}
+        </script>
+
+        <script>
+            $(document).ready(function() {
+                window._client = new SocialTypist.Client();            
+
+                // Load the SDK Asynchronously
+                (function(d){
+                    var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+                    if (d.getElementById(id)) {return;}
+                    js = d.createElement('script'); js.id = id; js.async = true;
+                    js.src = "//connect.facebook.net/en_US/all.js";
+                    ref.parentNode.insertBefore(js, ref);
+                }(document));
+
+                // Init the SDK upon load
+                window.fbAsyncInit = function() {
+                    _client.initFB(FB);
+                    
+                    FB.init({
+                        appId      : '259516830808506', // App ID
+                        channelUrl : '//'+window.location.hostname+'/channel', // Path to your Channel File
+                        status     : true, // check login status
+                        cookie     : true, // enable cookies to allow the server to access the session
+                        xfbml      : true  // parse XFBML
+                    });
+                    
+                }
+
+            }); 
+        </script>
+
+        {{{body}}}
+
+    </body>
+</html>

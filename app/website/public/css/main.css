@@ -1,0 +1,50 @@
+body { }
+body, div, p, ul, ol, h1, h2, h3 { font-family: 'Abril Fatface', cursives }
+
+form, form input, form select, form textarea, form button, form label, form submit, form .help-inline { font-family: 'Bitter', serif; }
+form p label { font-size: 15px }
+form .help-inline { font-size: 13px; color: #999 }
+
+
+.clear { clear: both }
+.center { margin-left: auto; margin-right: auto; float: none }
+
+.story .authors { font-weight: lighter; font-size: 16px; }
+/*    .story .authors { font-family: 'Bitter', serif; font-style: italic; } */
+.story .content, .story .content p, .story .content div, .story .content ul, .story .content ol, .story .content h1, .story .content h2, .story .content h3 { font-family: 'Bitter', serif; }
+    .story .content p { font-size: 14px; text-align: justify }
+    .story .picture { width: 400px; padding: 12px 20px 12px 20px }
+        .story img { max-width: 100% }
+    .story a { color: #333 }
+    
+.container > h1 { text-align: center; font-size: 80px; margin-top: 64px; }
+    .container > h1 > a, .container > h1 > a:hover, .container > h1 > a:visited { color: #333; text-decoration: none }
+
+
+.container.login { text-align: right; margin-top: 32px; } 
+    .container.login p { font-size: 20px; }
+    .container.login p img { height: 40px; width: 40px; margin-top: -8px }
+
+.container { }
+
+.container > p.desc { margin-top: 40px; text-align: center; font-size: 32px; color: #666 }
+.container > p.main-links { margin-top: 64px; text-align: center; font-size: 24px; font-weight: lighter }
+    .container > p.main-links a { padding: 6px; }
+        .container > p.main-links a.selected { color: #666; background: #eee; border-radius: 3px; }
+
+.container .content-area { width: 780px; margin: auto; margin-top: 32px; }
+    .container .content-area .content-pane { float: left }    
+        .container .content-area .content-pane.wide { width: 420px; }
+        .container .content-area .content-pane.narrow { width: 300px; }
+
+.home .latest { margin-left: 32px; width: 300px; float: left }        
+    .home .latest ul { margin:0; padding: 0 }
+    .home .latest ul li { list-style: none; padding: 6px 0 6px 0 }
+    .home .latest .update img  { float: left; margin-right: 12px; width: 32px; height: 32px; padding-bottom:20px; }
+    .home .latest .update .author { color: #333; font-size: 16px; font-weight: bold; font-family: 'Bitter', serif; }
+    .home .latest .update .story-link { color: #333; font-size: 16px; font-family: 'Bitter', serif; }
+    .home .latest .update .subtext { font-size: 12px; font-style: italic; font-family: 'Bitter', serif; }
+
+.home .featured h3, .home .latest > h3 { text-transform: uppercase; }
+
+
