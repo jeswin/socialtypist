@@ -74,7 +74,9 @@
       this.container.append("<div class=\"editable title\"><h1 class=\"title\">" + story.title + "</h1></div>");
       title = this.container.find('.editable.title');
       title.data('title', story.title);
-      return title.click(function() {});
+      return title.click(function() {
+        return _this.editTitle();
+      });
     };
 
     StoryEditView.prototype.editTitle = function() {
@@ -149,7 +151,7 @@
       var editable;
       editable = this.editor.find("#storypart_" + part._id);
       if (!editable.length) {
-        if (!previousElement) {
+        if (!previousElement || !previousElement.length) {
           this.editor.prepend("<li class=\"content editable\" id=\"storypart_" + part._id + "\"><br /></li>");
         } else {
           $("<li class=\"content editable\" id=\"storypart_" + part._id + "\"></li>").insertAfter(previousElement);

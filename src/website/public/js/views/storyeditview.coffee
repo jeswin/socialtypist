@@ -22,7 +22,7 @@ class StoryEditView
         title = @container.find('.editable.title')
         title.data 'title', story.title
         title.click () =>
-            
+            @editTitle()            
 
 
     editTitle: () =>
@@ -99,7 +99,7 @@ class StoryEditView
         #if the part is not found, create it.
         if not editable.length                
             #first item?
-            if not previousElement
+            if not previousElement or not previousElement.length
                 @editor.prepend "<li class=\"content editable\" id=\"storypart_#{part._id}\"><br /></li>"
             else
                 $("<li class=\"content editable\" id=\"storypart_#{part._id}\"></li>").insertAfter previousElement
@@ -322,7 +322,10 @@ class StoryEditView
             added = previous.next()
             
         added.find('.add').click () =>
-            part = { type: added.find('.part-type').val(), _id: SocialTypist.Utils.uniqueId() }
+            part = { 
+                type: added.find('.part-type').val(), 
+                _id: SocialTypist.Utils.uniqueId() 
+            }
             editable = @createPartContainer part, added.prev()
             added.remove()
             editable.data 'part', part 
