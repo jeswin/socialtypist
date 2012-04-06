@@ -15,10 +15,7 @@ class Story extends BaseModel
 
     @getById: (id, cb) =>
         Story._database.findOne 'stories', { '_id': @_database.ObjectId(id) }, (err, result) =>
-            if result  
-                cb null, new Story(result)                        
-            else
-                cb null, null
+            cb null, if result then new Story(result)
 
 
     
@@ -27,7 +24,6 @@ class Story extends BaseModel
             parts.toArray (err, items) =>
                 results = []
                 for partid in @parts
-                    console.log partid
                     part = (item for item in items when item._id.toString() == partid)[0]
                     part = new Story._models.StoryPart part
                     results.push part                    
@@ -39,6 +35,7 @@ class Story extends BaseModel
         if not @parts?.length
             @createdBy = user            
             @owners = [user]
+            @authors = []
             @parts = []
             super () =>
                 async.series [
@@ -112,7 +109,7 @@ class Story extends BaseModel
     addAuthor: (author, user, cb) =>
         if @isOwner user._id.toString()       
             #Confirm is not already an owner.
-            existing = (u for u in @authors where u._id.toString() == author._id.toString())
+            existing = (u for u in @authors when u._id.toString() == author._id.toString())
             if not existing.length
                 @authors.push author
                 @save cb
@@ -124,9 +121,9 @@ class Story extends BaseModel
     removeAuthor: (authorId, user, cb) =>
         if @isOwner user._id.toString()
             #See if author is among authors
-            existing = (u for u in @authors where u._id.toString() == authorId)
+            existing = (u for u in @authors when u._id.toString() == authorId)
             if exiting.length
-                @authors = (u for u in @authors where u._id.toString() != authorId)
+                @authors = (u for u in @authors when u._id.toString() != authorId)
                 @save cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
@@ -135,7 +132,7 @@ class Story extends BaseModel
     addOwner: (owner, user, cb) =>
         if @isOwner user._id.toString()
             #Confirm is not already an owner.
-            existing = (u for u in @owners where u._id.toString() == owner._id.toString())
+            existing = (u for u in @owners when u._id.toString() == owner._id.toString())
             if not existing.length
                 @owners.push owner
                 @save cb
@@ -147,9 +144,9 @@ class Story extends BaseModel
     removeOwner: (ownerId, user, cb) =>
         if @isOwner user._id.toString()
             #See if owner is among owners.
-            existing = (u for u in @owners where u._id.toString() == ownerId)
+            existing = (u for u in @owners when u._id.toString() == ownerId)
             if exiting.length
-                @owners = (u for u in @owners where u._id.toString() != ownerId)
+                @owners = (u for u in @owners when u._id.toString() != ownerId)
                 @save cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
@@ -157,14 +154,14 @@ class Story extends BaseModel
         
     
     isAuthor: (userId) =>
-        authors = (u for u in @authors where u._id.toString() == userId)
-        owners = (u for u in @owners where u._id.toString() == userId)
+        authors = (u for u in @authors when u._id.toString() == userId)
+        owners = (u for u in @owners when u._id.toString() == userId)
         return authors.length > 0 or owners.length > 0
             
             
         
     isOwner: (userId) =>
-        matches = (u for u in @owners where u._id.toString() == userId)
+        matches = (u for u in @owners when u._id.toString() == userId)
         return matches.length > 0
     
 

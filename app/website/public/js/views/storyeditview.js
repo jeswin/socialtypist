@@ -138,7 +138,7 @@
       partElem = this.editor.find("#storypart_" + part._id);
       if (!partElem.length) {
         if (!previousElement) {
-          this.editor.prepends("<li class=\"content editable\" id=\"storypart_" + part._id + "\"><br /></li>");
+          this.editor.prepend("<li class=\"content editable\" id=\"storypart_" + part._id + "\"><br /></li>");
         } else {
           $("<li class=\"content editable\" id=\"storypart_" + part._id + "\"></li>").insertAfter(previousElement);
         }

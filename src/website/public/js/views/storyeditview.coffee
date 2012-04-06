@@ -94,7 +94,7 @@ class StoryEditView
         if not partElem.length                
             #first item?
             if not previousElement
-                @editor.prepends "<li class=\"content editable\" id=\"storypart_#{part._id}\"><br /></li>"
+                @editor.prepend "<li class=\"content editable\" id=\"storypart_#{part._id}\"><br /></li>"
             else
                 $("<li class=\"content editable\" id=\"storypart_#{part._id}\"></li>").insertAfter previousElement
     

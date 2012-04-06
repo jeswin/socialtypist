@@ -57,11 +57,7 @@
       return Story._database.findOne('stories', {
         '_id': Story._database.ObjectId(id)
       }, function(err, result) {
-        if (result) {
-          return cb(null, new Story(result));
-        } else {
-          return cb(null, null);
-        }
+        return cb(null, result ? new Story(result) : void 0);
       });
     };
 
@@ -88,7 +84,6 @@
           _ref = _this.parts;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             partid = _ref[_i];
-            console.log(partid);
             part = ((function() {
               var _j, _len1, _results;
               _results = [];
@@ -112,6 +107,7 @@
       if (!((_ref = this.parts) != null ? _ref.length : void 0)) {
         this.createdBy = user;
         this.owners = [user];
+        this.authors = [];
         this.parts = [];
         return Story.__super__.save.call(this, function() {
           return async.series([
@@ -147,7 +143,7 @@
 
     Story.prototype.addPart = function(part, after, user, cb) {
       var _this = this;
-      if (this.isAuthor(user)) {
+      if (this.isAuthor(user._id.toString())) {
         part.author = user;
         part.story = this._id.toString();
         return part.save(function() {
@@ -203,14 +199,14 @@
 
     Story.prototype.addAuthor = function(author, user, cb) {
       var existing, u;
-      if (this.isOwner(user)) {
+      if (this.isOwner(user._id.toString())) {
         existing = (function() {
           var _i, _len, _ref, _results;
-          _ref = this.authors(where(u._id.toString() === author._id.toString()));
+          _ref = this.authors;
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             u = _ref[_i];
-            _results.push(u);
+            if (u._id.toString() === author._id.toString()) _results.push(u);
           }
           return _results;
         }).call(this);
@@ -231,22 +227,22 @@
       if (this.isOwner(user._id.toString())) {
         existing = (function() {
           var _i, _len, _ref, _results;
-          _ref = this.authors(where(u._id.toString() === authorId));
+          _ref = this.authors;
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             u = _ref[_i];
-            _results.push(u);
+            if (u._id.toString() === authorId) _results.push(u);
           }
           return _results;
         }).call(this);
         if (exiting.length) {
           this.authors = (function() {
             var _i, _len, _ref, _results;
-            _ref = this.authors(where(u._id.toString() !== authorId));
+            _ref = this.authors;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               u = _ref[_i];
-              _results.push(u);
+              if (u._id.toString() !== authorId) _results.push(u);
             }
             return _results;
           }).call(this);
@@ -265,11 +261,11 @@
       if (this.isOwner(user._id.toString())) {
         existing = (function() {
           var _i, _len, _ref, _results;
-          _ref = this.owners(where(u._id.toString() === owner._id.toString()));
+          _ref = this.owners;
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             u = _ref[_i];
-            _results.push(u);
+            if (u._id.toString() === owner._id.toString()) _results.push(u);
           }
           return _results;
         }).call(this);
@@ -290,22 +286,22 @@
       if (this.isOwner(user._id.toString())) {
         existing = (function() {
           var _i, _len, _ref, _results;
-          _ref = this.owners(where(u._id.toString() === ownerId));
+          _ref = this.owners;
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             u = _ref[_i];
-            _results.push(u);
+            if (u._id.toString() === ownerId) _results.push(u);
           }
           return _results;
         }).call(this);
         if (exiting.length) {
           this.owners = (function() {
             var _i, _len, _ref, _results;
-            _ref = this.owners(where(u._id.toString() !== ownerId));
+            _ref = this.owners;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               u = _ref[_i];
-              _results.push(u);
+              if (u._id.toString() !== ownerId) _results.push(u);
             }
             return _results;
           }).call(this);
@@ -323,21 +319,21 @@
       var authors, owners, u;
       authors = (function() {
         var _i, _len, _ref, _results;
-        _ref = this.authors(where(u._id.toString() === userId));
+        _ref = this.authors;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           u = _ref[_i];
-          _results.push(u);
+          if (u._id.toString() === userId) _results.push(u);
         }
         return _results;
       }).call(this);
       owners = (function() {
         var _i, _len, _ref, _results;
-        _ref = this.owners(where(u._id.toString() === userId));
+        _ref = this.owners;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           u = _ref[_i];
-          _results.push(u);
+          if (u._id.toString() === userId) _results.push(u);
         }
         return _results;
       }).call(this);
@@ -348,11 +344,11 @@
       var matches, u;
       matches = (function() {
         var _i, _len, _ref, _results;
-        _ref = this.owners(where(u._id.toString() === userId));
+        _ref = this.owners;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           u = _ref[_i];
-          _results.push(u);
+          if (u._id.toString() === userId) _results.push(u);
         }
         return _results;
       }).call(this);
