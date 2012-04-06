@@ -36,10 +36,7 @@ findHandler = (name, getHandler) ->
             when 'home' then new controllers.HomeController()
             when 'stories' then new controllers.StoriesController()
             else throw 'Boom'
-        if controller.beforeExecute
-            controller.beforeExecute req, res, next, getHandler
-        else
-            getHandler(controller)(req, res, next)
+        getHandler(controller)(req, res, next)
 
 #all routes go here.
 app.get '/', findHandler('home', (c) -> c.index)
@@ -47,6 +44,8 @@ app.post '/addSession', findHandler('home', (c) -> c.addSession)
 app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
 app.get '/stories/write', findHandler('stories', (c) -> c.write)
 app.post '/stories/write', findHandler('stories', (c) -> c.write_post)
+app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.edit)
+
 
 # handle all app errors - 500
 app.use (err, req, res, next) ->

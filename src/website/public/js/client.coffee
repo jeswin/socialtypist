@@ -13,6 +13,7 @@ class Client
                 callback = (response) ->
                     if response.authResponse
                         @FB.api '/me', (aboutMe) =>
+                            aboutMe.domain = 'facebook'
                             $.post '/addSession', aboutMe, () =>
                                 window.location.href = url
             
@@ -34,7 +35,8 @@ class Client
         callback = (response) ->
             if response.authResponse
                 @FB.api '/me', (aboutMe) =>
-                    $.post '/addSession', aboutMe, () =>
+                    aboutMe.domain = 'facebook'       
+                    $.post '/addSession', aboutMe, () =>                        
                         window.location.reload()
     
         @FB.login callback, { scope: 'email,user_location' }

@@ -1,8 +1,9 @@
+async = require 'async'
 BaseModel = require('./basemodel').BaseModel
 
 class Story extends BaseModel
 
-    @_meta = {
+    @_meta: {
         type: Story,
         collection: 'stories',
         logging: {
@@ -11,39 +12,74 @@ class Story extends BaseModel
         }
     }
 
+
+    @getById: (id, cb) =>
+        Story._database.findOne 'stories', { '_id': @_database.ObjectId(id) }, (err, result) =>
+            if result  
+                cb null, new Story(result)                        
+            else
+                cb null, null
+
+
+    
+    getParts: (cb) =>
+        Story._database.find 'storyparts', { '$or': ({ _id: Story._database.ObjectId(partid) } for partid in @parts)  }, (err, parts) =>
+            parts.toArray (err, items) =>
+                results = []
+                for partid in @parts
+                    console.log partid
+                    part = (item for item in items when item._id.toString() == partid)[0]
+                    part = new Story._models.StoryPart part
+                    results.push part                    
+                cb null, results
+
+                    
     
     save: (user, cb) =>
-        if not this.parts?.length
-            part = new Story._models.Part()
-            part.type = "MARKER"
-            part.value = "START"
-            part.save () =>
-                this.parts = [part._id.toString()]
-                this.owners = [user]
-                Story.__super__.save.apply @, [cb] #coz CS will complain calling super from anon functions, at least for now.                
+        if not @parts?.length
+            @createdBy = user            
+            @owners = [user]
+            @parts = []
+            super () =>
+                async.series [
+                        ((cb) =>
+                            part = new Story._models.StoryPart()
+                            part.type = "HEADING"
+                            part.size = 'H2'
+                            part.value = "Sample Heading. Click to edit."
+                            @addPart part, null, user, cb),                        
+                        ((cb) =>
+                            part = new Story._models.StoryPart()
+                            part.type = "TEXT"
+                            part.value = "This is some sample content. Click to edit."
+                            @addPart part, @parts[0], user, cb)                        
+                    ], () => cb()
+                
         else
             #only owners may save
-            if @isOwner user
+            if @isOwner user._id.toString()
                 super cb
             else
                 throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
-            
 
-           
+            
+          
+          
     addPart: (part, after, user, cb) =>
         #only authors may add a part
-        if @isAuthor user
+        if @isAuthor user._id.toString()
             part.author = user
+            part.story = @_id.toString()
             part.save () =>
                 @parts.splice (@parts.indexOf(after) + 1), 0, part._id.toString()
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
 
     
     
     updatePart: (part, user, cb) =>
-        if @isAuthor user
+        if @isAuthor user._id.toString()
             part.save cb 
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
@@ -51,7 +87,7 @@ class Story extends BaseModel
     
     
     removePart: (part, user, cb) =>
-        if @isAuthor user
+        if @isAuthor user._id.toString()
             @parts.splice @parts.indexOf part._id.toString(), 1
             @save cb
         else
@@ -60,16 +96,24 @@ class Story extends BaseModel
     
     
     changePart: (oldPart, newPart, user, cb) =>
-        if @isAuthor user
+        if @isAuthor user._id.toString()
             @parts.splice @parts.indexOf oldPart._id.toString(), 1, newPart._id.toString()
             @save cb
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
         
+  
+
+    addChange: (change, cb) =>
+        change = 1
+
+
         
     addAuthor: (author, user, cb) =>
-        if @isOwner user            
-            if @authors.indexOf(author) == -1
+        if @isOwner user._id.toString()       
+            #Confirm is not already an owner.
+            existing = (u for u in @authors where u._id.toString() == author._id.toString())
+            if not existing.length
                 @authors.push author
                 @save cb
         else
@@ -77,18 +121,22 @@ class Story extends BaseModel
 
 
 
-    removeAuthor: (author, user, cb) =>
-        if @isOwner user
-            if @authors.indexOf(author) > -1
-                @authors.splice @authors.indexOf author, 1
-                @save cb                
+    removeAuthor: (authorId, user, cb) =>
+        if @isOwner user._id.toString()
+            #See if author is among authors
+            existing = (u for u in @authors where u._id.toString() == authorId)
+            if exiting.length
+                @authors = (u for u in @authors where u._id.toString() != authorId)
+                @save cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
 
     addOwner: (owner, user, cb) =>
-        if @isOwner user
-            if @owners.indexOf(owner) == -1
+        if @isOwner user._id.toString()
+            #Confirm is not already an owner.
+            existing = (u for u in @owners where u._id.toString() == owner._id.toString())
+            if not existing.length
                 @owners.push owner
                 @save cb
         else
@@ -96,24 +144,28 @@ class Story extends BaseModel
 
 
 
-    removeOwner: (owner, user, cb) =>
-        if @isOwner user
-            if @owners.indexOf(owner) > -1
-                @owners.splice @owners.indexOf owner, 1
+    removeOwner: (ownerId, user, cb) =>
+        if @isOwner user._id.toString()
+            #See if owner is among owners.
+            existing = (u for u in @owners where u._id.toString() == ownerId)
+            if exiting.length
+                @owners = (u for u in @owners where u._id.toString() != ownerId)
                 @save cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
             
         
     
-    isAuthor: (username) =>
-        return owners.indexOf(username) > -1 or authors.indexOf(username) > -1
+    isAuthor: (userId) =>
+        authors = (u for u in @authors where u._id.toString() == userId)
+        owners = (u for u in @owners where u._id.toString() == userId)
+        return authors.length > 0 or owners.length > 0
             
             
         
-    isOwner: (username) =>
-        return owners.indexOf(username) > -1
+    isOwner: (userId) =>
+        matches = (u for u in @owners where u._id.toString() == userId)
+        return matches.length > 0
     
-
 
 exports.Story = Story

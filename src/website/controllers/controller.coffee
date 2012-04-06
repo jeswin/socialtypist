@@ -16,6 +16,15 @@ class Controller
             }
         return status
         
+        
+    ensureSession: (fn) ->
+        return (req, res, next) ->
+            if req.session.user?
+                fn req, res, next
+            else
+                res.redirect '/login'
+        
+        
 exports.Controller = Controller
 
 

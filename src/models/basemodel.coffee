@@ -16,11 +16,15 @@ class BaseModel
            
     @getById: (id, cb) ->
         meta = @_meta
-        @_database.findOne meta.collection, { _id: @_database.ObjectId(id) }, (err, result) ->
+        @_database.findOne meta.collection, { '_id': @_database.ObjectId(id) }, (err, result) ->
             cb err, if result then new meta.type()
 
 
     save: (cb) ->
+        #Don't save _objects, which holds instances of linked objects.
+        if @_objects?
+            delete @_objects
+            
         meta = this.constructor._meta
         if not this._id?
             if meta.logging?.isLogged

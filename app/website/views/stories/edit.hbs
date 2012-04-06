@@ -1,0 +1,33 @@
+<script src="/public/js/views/storyeditview.js"></script>
+<script>
+    var story = {{{story}}};
+    $(document).ready(function() {
+        var view = new SocialTypist.StoryEditView(story, $('#story-editor'));
+        view.render();
+    });
+</script>
+<div class="container">
+    <h1><a href="/">Social Typist</a></h1>
+    <p class="main-links">
+        <a class="read" href="#">Read stories</a>
+        {{#if loginStatus.loggedIn}}
+        | <a class="mystories" href="#">Your stories</a>
+        {{/if}}
+        | <a class="write selected" href="#">Write a story</a>
+    </p>
+    <div class="content-area row">
+        <div class="content-pane span8">
+            <div id="story-editor" class="story"></div>
+        </div>
+        <div class="content-pane span4">
+            <p>
+                <a href="#" class="action small">Story settings</a>
+            </p>
+            <hr />
+            <p class="form">
+                <a href="#" class="btn btn-large">Publish Story</a>
+            </p>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>

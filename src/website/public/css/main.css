@@ -1,50 +1,97 @@
-body { }
+body { background: #fff url(/public/images/white_texture.png) repeat }
 body, div, p, ul, ol, h1, h2, h3 { font-family: 'Abril Fatface', cursives }
 
-form, form input, form select, form textarea, form button, form label, form submit, form .help-inline { font-family: 'Bitter', serif; }
-form p label { font-size: 15px }
-form .help-inline { font-size: 13px; color: #999 }
+form, form input, form select, form textarea, form button, form label, form submit, form p, form p label, a.action, a.btn,
+        .form, .form p, .form span { font-family: 'Bitter', serif; }
+form .help-inline { font-size: 13px; color: #999; font-family: 'Bitter', serif; }
+a.action { padding-left: 4px; }
 
 
+/* COMMON CLASSES */
 .clear { clear: both }
 .center { margin-left: auto; margin-right: auto; float: none }
+.small { font-size: 12px; }
+.padded { margin-left: 12px !important}
 
-.story .authors { font-weight: lighter; font-size: 16px; }
-/*    .story .authors { font-family: 'Bitter', serif; font-style: italic; } */
-.story .content, .story .content p, .story .content div, .story .content ul, .story .content ol, .story .content h1, .story .content h2, .story .content h3 { font-family: 'Bitter', serif; }
-    .story .content p { font-size: 14px; text-align: justify }
-    .story .picture { width: 400px; padding: 12px 20px 12px 20px }
-        .story img { max-width: 100% }
-    .story a { color: #333 }
-    
+/* MAIN HEADING */
 .container > h1 { text-align: center; font-size: 80px; margin-top: 64px; }
     .container > h1 > a, .container > h1 > a:hover, .container > h1 > a:visited { color: #333; text-decoration: none }
 
 
+/* DESCRIPTION AND LINKS */
+.container > p.desc { margin-top: 40px; text-align: center; font-size: 32px; color: #666 }
+.container > p.main-links { margin-top: 40px; text-align: center; font-size: 24px; font-weight: lighter }
+    .container > p.main-links a { padding: 6px; }
+        .container > p.main-links a.selected { color: #666; background: #eee; border-radius: 3px; }
+
+/* LOGIN */
 .container.login { text-align: right; margin-top: 32px; } 
     .container.login p { font-size: 20px; }
     .container.login p img { height: 40px; width: 40px; margin-top: -8px }
 
-.container { }
 
-.container > p.desc { margin-top: 40px; text-align: center; font-size: 32px; color: #666 }
-.container > p.main-links { margin-top: 64px; text-align: center; font-size: 24px; font-weight: lighter }
-    .container > p.main-links a { padding: 6px; }
-        .container > p.main-links a.selected { color: #666; background: #eee; border-radius: 3px; }
+/* CONTENT BOX */
+.container .content-area { padding-top: 32px; padding-bottom: 32px; margin-top: 24px; background: #fff; box-shadow: 1px 1px 2px 1px #aaa; }
+    .container .content-area.plain { background: none; box-shadow: none; margin-top: 0; }
+        .container .content-area.plain .well { background: #fff }
+    .container .content-area .content-pane { float: left }
 
-.container .content-area { width: 780px; margin: auto; margin-top: 32px; }
-    .container .content-area .content-pane { float: left }    
-        .container .content-area .content-pane.wide { width: 420px; }
-        .container .content-area .content-pane.narrow { width: 300px; }
+/* smaller screens lose background */
+@media (max-width:767px) {
+    body { background: none }
+    .container .content-area { padding-top: 32px; padding-bottom: 32px; margin-top: 24px; background: #fff; box-shadow: none; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+}
 
-.home .latest { margin-left: 32px; width: 300px; float: left }        
+
+/* STORY */
+.story h1 { font-size: 32px; margin-top: 16px; margin-bottom: 8px }
+    .story h1.title { margin-top: 0px;   }
+.story h2 { font-size: 24px; margin-top: 12px; margin-bottom: 6px }
+.story h3 { font-size: 20px; margin-top: 8px; margin-bottom: 4px }
+.story h4 { font-size: 18px; margin-top: 6px; margin-bottom: 3px }
+.story h5 { font-size: 16px; margin-top: 6px; margin-bottom: 3px }
+.story h6 { font-size: 16px; margin-top: 5px; margin-bottom: 3px }
+
+
+.story .authors { font-weight: lighter; font-size: 16px; margin-bottom: 12px; }
+
+.story .content, .story .content p, .story .content div, .story .content ul, .story .content ol { font-family: 'Bitter', serif; }
+    .story .content p { font-size: 14px; text-align: justify }
+    .story .picture { width: 400px; padding: 12px 20px 12px 20px }
+        .story img { max-width: 100% }
+    .story h2 a, .story .authors a { color: #333 }
+
+
+/* STORY EDITOR */
+#story-editor h1.title { padding-bottom: 12px; }
+    #story-editor .title-editor input { padding-bottom: 12px; font-family: 'Abril Fatface', cursives; font-size: 24px; }
+
+#story-editor .editable { cursor: pointer }
+    #story-editor .hover { border-radius: 4px; background: #eee; }
+    #story-editor .selected, #story-editor .unsaved { border-radius: 4px; background: #eee; padding:12px 4px 4px 8px; margin-bottom: 12px; }
+       
+#story-editor ul { padding:0; margin: 0 }
+    #story-editor li { list-style: none; margin: 0; }    
+        #part-editor .editable textarea { width: 90% }
+    
+    #story-editor .add-section { padding-right: 12px; }
+        #story-editor .add-section span { font-size: 14px; padding: 0; margin-right: 1px; height: 10px; }
+        #story-editor .editable .add-section { text-align: right }
+    
+    #story-editor .editable hr { margin: 4px 0 4px 0 }
+    #story-editor div.editable:hover, #story-editor li.editable:hover { background: #eee }
+    
+/* HOME PAGE */
+.home .latest { }        
+
     .home .latest ul { margin:0; padding: 0 }
     .home .latest ul li { list-style: none; padding: 6px 0 6px 0 }
+
     .home .latest .update img  { float: left; margin-right: 12px; width: 32px; height: 32px; padding-bottom:20px; }
     .home .latest .update .author { color: #333; font-size: 16px; font-weight: bold; font-family: 'Bitter', serif; }
     .home .latest .update .story-link { color: #333; font-size: 16px; font-family: 'Bitter', serif; }
     .home .latest .update .subtext { font-size: 12px; font-style: italic; font-family: 'Bitter', serif; }
 
-.home .featured h3, .home .latest > h3 { text-transform: uppercase; }
+    .home .featured h3, .home .latest > h3 { text-transform: uppercase; }
 
 
