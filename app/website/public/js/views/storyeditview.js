@@ -9,6 +9,10 @@
 
     function StoryEditView(story, container) {
       this.story = story;
+      this.getHeadingPrefix = __bind(this.getHeadingPrefix, this);
+
+      this.makeHtml = __bind(this.makeHtml, this);
+
       this.addSection = __bind(this.addSection, this);
 
       this.deletePart = __bind(this.deletePart, this);
@@ -33,13 +37,11 @@
 
       this.renderHeadingPart = __bind(this.renderHeadingPart, this);
 
-      this.bindPartEditClick = __bind(this.bindPartEditClick, this);
+      this.renderPartContent = __bind(this.renderPartContent, this);
 
-      this.bindTitleEditClick = __bind(this.bindTitleEditClick, this);
+      this.createPartContainer = __bind(this.createPartContainer, this);
 
-      this.renderPart = __bind(this.renderPart, this);
-
-      this.renderParts = __bind(this.renderParts, this);
+      this.createParts = __bind(this.createParts, this);
 
       this.cancelTitleEdit = __bind(this.cancelTitleEdit, this);
 
@@ -47,7 +49,7 @@
 
       this.editTitle = __bind(this.editTitle, this);
 
-      this.renderTitle = __bind(this.renderTitle, this);
+      this.createTitle = __bind(this.createTitle, this);
 
       this.render = __bind(this.render, this);
 
@@ -62,22 +64,24 @@
     };
 
     StoryEditView.prototype.render = function() {
-      this.renderTitle();
-      return this.renderParts();
+      this.createTitle();
+      return this.createParts();
     };
 
-    StoryEditView.prototype.renderTitle = function() {
-      var title;
+    StoryEditView.prototype.createTitle = function() {
+      var title,
+        _this = this;
       this.container.append("<div class=\"editable title\"><h1 class=\"title\">" + story.title + "</h1></div>");
       title = this.container.find('.editable.title');
       title.data('title', story.title);
-      return this.bindTitleEditClick(title);
+      return title.click(function() {});
     };
 
     StoryEditView.prototype.editTitle = function() {
       var editable, val,
         _this = this;
       editable = $('#story-editor .editable.title');
+      editable.unbind('click');
       editable.addClass('selected');
       val = editable.data('title');
       editable.html("            <form class=\"title-editor\">                <input type=\"text\" class=\"span6\" /><br />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
@@ -97,23 +101,29 @@
     };
 
     StoryEditView.prototype.saveTitle = function() {
-      var editable;
+      var editable,
+        _this = this;
       editable = $('#story-editor .editable.title');
-      this.bindTitleEditClick(editable);
+      editable.click(function() {
+        return _this.editTitle();
+      });
       editable.removeClass('selected');
       return editable.html("<h1 class=\"title\">" + ($('.title-editor input').val()) + "</h1>");
     };
 
     StoryEditView.prototype.cancelTitleEdit = function() {
-      var editable;
+      var editable,
+        _this = this;
       editable = $('#story-editor .editable.title');
-      this.bindTitleEditClick(editable);
+      editable.click(function() {
+        return _this.editTitle();
+      });
       editable.removeClass('selected');
       return editable.html("<h1 class=\"title\">" + (editable.data('title')) + "</h1>");
     };
 
-    StoryEditView.prototype.renderParts = function() {
-      var part, previous, _i, _len, _ref, _results,
+    StoryEditView.prototype.createParts = function() {
+      var editable, part, _i, _len, _ref, _results,
         _this = this;
       this.container.append('<ul id="part-editor" class="story"></ul>');
       this.container.append('<p class="add-section"><span class="plus">+</span><a class="small action" href="#">add new section</a></p>');
@@ -127,188 +137,190 @@
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           part = _ref[_i];
-          _results.push(previous = this.renderPart(part, previous));
+          editable = this.createPartContainer(part, editable);
+          editable.data('part', part);
+          _results.push(this.renderPartContent(editable));
         }
         return _results;
       }
     };
 
-    StoryEditView.prototype.renderPart = function(part, previousElement) {
-      var partElem;
-      partElem = this.editor.find("#storypart_" + part._id);
-      if (!partElem.length) {
+    StoryEditView.prototype.createPartContainer = function(part, previousElement) {
+      var editable;
+      editable = this.editor.find("#storypart_" + part._id);
+      if (!editable.length) {
         if (!previousElement) {
           this.editor.prepend("<li class=\"content editable\" id=\"storypart_" + part._id + "\"><br /></li>");
         } else {
           $("<li class=\"content editable\" id=\"storypart_" + part._id + "\"></li>").insertAfter(previousElement);
         }
-        partElem = this.editor.find("#storypart_" + part._id);
+        editable = this.editor.find("#storypart_" + part._id);
       }
-      partElem.data('part', part);
-      switch (part.type) {
+      return editable;
+    };
+
+    StoryEditView.prototype.renderPartContent = function(editable) {
+      var _this = this;
+      editable.click(function() {
+        editable.unbind('click');
+        return _this.editPart(editable);
+      });
+      switch (editable.data('part').type) {
         case 'HEADING':
-          this.renderHeadingPart(partElem);
+          this.renderHeadingPart(editable);
           break;
         case 'TEXT':
-          this.renderTextPart(partElem);
+          this.renderTextPart(editable);
           break;
         case 'IMAGE':
-          this.renderImagePart(partElem);
+          this.renderImagePart(editable);
           break;
         case 'VIDEO':
-          this.renderVideoPart(partElem);
+          this.renderVideoPart(editable);
       }
-      this.bindPartEditClick(partElem);
-      return partElem;
+      return editable;
     };
 
-    StoryEditView.prototype.bindTitleEditClick = function(title) {
-      var _this = this;
-      return title.click(function() {
-        title.unbind('click');
-        return _this.editTitle();
-      });
-    };
-
-    StoryEditView.prototype.bindPartEditClick = function(partElem) {
-      var _this = this;
-      return partElem.click(function() {
-        partElem.unbind('click');
-        return _this.editPart(partElem);
-      });
-    };
-
-    StoryEditView.prototype.renderHeadingPart = function(partElem) {
-      var headingSize, part;
-      part = partElem.data('part');
-      headingSize = (function() {
-        switch (part.size) {
-          case 'H1':
-            return '#';
-          case 'H2':
-            return '##';
-          case 'H3':
-            return '###';
-          case 'H4':
-            return '####';
-          case 'H5':
-            return '#####';
-          case 'H6':
-            return '######';
-        }
-      })();
-      return partElem.html(this.showdown.makeHtml(headingSize + part.value));
-    };
-
-    StoryEditView.prototype.renderTextPart = function(partElem) {
+    StoryEditView.prototype.renderHeadingPart = function(editable) {
       var part;
-      part = partElem.data('part');
-      return partElem.html(this.showdown.makeHtml(part.value));
+      part = editable.data('part');
+      return editable.html(this.makeHtml(this.getHeadingPrefix(part.size) + part.value));
     };
 
-    StoryEditView.prototype.renderImagePart = function(partElem) {
+    StoryEditView.prototype.renderTextPart = function(editable) {
+      var part;
+      part = editable.data('part');
+      return editable.html(this.makeHtml(part.value));
+    };
+
+    StoryEditView.prototype.renderImagePart = function(editable) {
       var alt, part, _ref;
-      part = partElem.data('part');
+      part = editable.data('part');
       alt = (_ref = part.alt) != null ? _ref : '';
-      return partElem.html("<img src=\"" + part.value + "\" alt=\"" + alt + "\" />");
+      return editable.html("<img src=\"" + part.value + "\" alt=\"" + alt + "\" />");
     };
 
-    StoryEditView.prototype.renderVideoPart = function(partElem) {
+    StoryEditView.prototype.renderVideoPart = function(editable) {
       var part;
-      part = partElem.data('part');
-      return partElem.html(this.showdown.makeHtml(part.value));
+      part = editable.data('part');
+      return editable.html(this.makeHtml(part.value));
     };
 
-    StoryEditView.prototype.editPart = function(elem) {
+    StoryEditView.prototype.editPart = function(editable) {
       var part,
         _this = this;
-      part = elem.data('part');
-      elem.addClass('selected');
+      part = editable.data('part');
+      editable.addClass('selected');
       switch (part.type) {
         case 'HEADING':
-          this.editHeadingPart(elem);
+          this.editHeadingPart(editable);
           break;
         case 'TEXT':
-          this.editTextPart(elem);
+          this.editTextPart(editable);
           break;
         case 'IMAGE':
-          this.editImagePart(elem);
+          this.editImagePart(editable);
           break;
         case 'VIDEO':
-          this.editVideoPart(elem);
+          this.editVideoPart(editable);
       }
-      elem.find('.save').click(function() {
-        _this.savePart(elem);
+      editable.find('.cancel').click(function() {
+        _this.cancelPartEdit(editable);
         return false;
       });
-      elem.find('.cancel').click(function() {
-        _this.cancelPartEdit(elem);
+      editable.find('.delete').click(function() {
+        _this.deletePart(editable);
         return false;
       });
-      elem.find('.delete').click(function() {
-        _this.deletePart(elem);
+      editable.find('.insert').click(function() {
+        _this.addSection(editable);
         return false;
       });
-      elem.find('.insert').click(function() {
-        _this.addSection(elem);
-        return false;
-      });
-      return elem.find('textarea').focus();
+      return editable.find('textarea').focus();
     };
 
-    StoryEditView.prototype.editHeadingPart = function(elem) {
-      var part;
-      part = elem.data('part');
-      return elem.html("            <form>                <input type=\"text\" class=\"span6\" value=\"" + part.value + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+    StoryEditView.prototype.editHeadingPart = function(editable) {
+      var part, _ref, _ref1,
+        _this = this;
+      part = editable.data('part');
+      editable.html("            <form>                <select class=\"size span2\">                    <option>H2</option>                    <option>H3</option>                    <option>H4</option>                    <option>H5</option>                    <option>H6</option>                                    </select>                <br />                <input type=\"text\" class=\"span6\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      editable.find('.size').val((_ref1 = part.size) != null ? _ref1 : 'H2');
+      return editable.find('.save').click(function() {
+        return _this.savePart(editable, function() {
+          part.size = editable.find('select').val();
+          part.value = editable.find('input').val();
+          return editable.html(_this.makeHtml(_this.getHeadingPrefix(part.size) + part.value));
+        });
+      });
     };
 
-    StoryEditView.prototype.editTextPart = function(elem) {
-      var part, rows;
-      part = elem.data('part');
-      if (elem.height() > 480) {
+    StoryEditView.prototype.editTextPart = function(editable) {
+      var part, rows,
+        _this = this;
+      part = editable.data('part');
+      if (editable.height() > 480) {
         rows = 28;
-      } else if (elem.height() > 240) {
+      } else if (editable.height() > 240) {
         rows = 16;
       } else {
         rows = 8;
       }
-      return elem.html("            <form>                <textarea rows=\"" + rows + "\">" + part.value + "</textarea>                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      editable.html("            <form>                <textarea rows=\"" + rows + "\">" + part.value + "</textarea>                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      return editable.find('.save').click(function() {
+        editable.click(function() {
+          return _this.editPart(editable);
+        });
+        part = editable.data('part');
+        editable.removeClass('selected');
+        part.value = editable.find('textarea').val();
+        editable.html(_this.makeHtml(editable.find('textarea').val()));
+        return false;
+      });
     };
 
-    StoryEditView.prototype.editImagePart = function(elem) {
+    StoryEditView.prototype.editImagePart = function(editable) {
       var part;
-      part = elem.data('part');
-      return elem.html("            <form>                <input type=\"text\" class=\"span6\" value=\"" + part.value + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      part = editable.data('part');
+      return editable.html("            <form>                <input type=\"text\" class=\"span6\" value=\"" + part.value + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
     };
 
-    StoryEditView.prototype.editVideoPart = function(elem) {
+    StoryEditView.prototype.editVideoPart = function(editable) {
       var part;
-      part = elem.data('part');
-      return elem.html("            <form>                <input type=\"text\" class=\"span6\" value=\"" + part.value + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      part = editable.data('part');
+      return editable.html("            <form>                <input type=\"text\" class=\"span6\" value=\"" + part.value + "\" />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
     };
 
-    StoryEditView.prototype.savePart = function(elem) {
-      var part;
-      this.bindPartEditClick(elem);
-      part = elem.data('part');
-      elem.removeClass('selected');
-      part.value = elem.find('textarea').val();
-      return elem.html(this.showdown.makeHtml(elem.find('textarea').val()));
+    StoryEditView.prototype.savePart = function(editable, fnEdit) {
+      var part,
+        _this = this;
+      editable.click(function() {
+        return _this.editPart(editable);
+      });
+      editable.removeClass('selected');
+      fnEdit();
+      part = editable.data('part');
+      return false;
     };
 
-    StoryEditView.prototype.cancelPartEdit = function(elem) {
-      var part;
-      this.bindPartEditClick(elem);
-      part = elem.data('part');
-      elem.removeClass('selected');
-      return elem.html(this.showdown.makeHtml(part.value));
+    StoryEditView.prototype.cancelPartEdit = function(editable) {
+      var part,
+        _this = this;
+      editable.click(function() {
+        return _this.editPart(editable);
+      });
+      part = editable.data('part');
+      editable.removeClass('selected');
+      return editable.html(this.makeHtml(part.value));
     };
 
-    StoryEditView.prototype.deletePart = function(elem) {
-      var part;
-      this.bindPartEditClick(elem);
-      part = elem.data('part');
-      return elem.remove();
+    StoryEditView.prototype.deletePart = function(editable) {
+      var part,
+        _this = this;
+      editable.click(function() {
+        return _this.editPart(editable);
+      });
+      part = editable.data('part');
+      return editable.remove();
     };
 
     StoryEditView.prototype.addSection = function(previous) {
@@ -325,7 +337,7 @@
         }
       })();
       if (elem.hasClass('unsaved')) return;
-      content = "            <li class=\"unsaved form\">                <select class=\"part-type\">                    <option value=\"HEADING\">Heading</option>                    <option value=\"TEXT\" selected=\"selected\">Text</option>                    <option value=\"IMAGE\">Image</option>                    <option value=\"VIDEO\">Video</option>                </select>                <p>                    <a href=\"#\" class=\"btn add\">Add</a>                    <a href=\"#\" class=\"small action cancel\">cancel</a>                </p>            </li>        ";
+      content = "            <li class=\"unsaved form\">                <select class=\"part-type span2\">                    <option value=\"HEADING\">Heading</option>                    <option value=\"TEXT\" selected=\"selected\">Text</option>                    <option value=\"IMAGE\">Image</option>                    <option value=\"VIDEO\">Video</option>                </select>                <p>                    <a href=\"#\" class=\"btn add\">Add</a>                    <a href=\"#\" class=\"small action cancel\">cancel</a>                </p>            </li>        ";
       if (previous === 'start') {
         $('#part-editor').prepend(content);
         added = $('#part-editor').children().first();
@@ -337,16 +349,46 @@
         added = previous.next();
       }
       added.find('.add').click(function() {
-        var part;
+        var editable, part;
         part = {
-          type: added.find('.part-type').val()
+          type: added.find('.part-type').val(),
+          _id: SocialTypist.Utils.uniqueId()
         };
-        return _this.renderPart(part, added.previous());
+        editable = _this.createPartContainer(part, added.prev());
+        added.remove();
+        editable.data('part', part);
+        _this.editPart(editable);
+        return false;
       });
       return added.find('.cancel').click(function() {
         added.remove();
         return false;
       });
+    };
+
+    StoryEditView.prototype.makeHtml = function(markdown) {
+      if (markdown) {
+        return this.showdown.makeHtml(markdown);
+      } else {
+        return '';
+      }
+    };
+
+    StoryEditView.prototype.getHeadingPrefix = function(size) {
+      switch (size) {
+        case 'H1':
+          return '#';
+        case 'H2':
+          return '##';
+        case 'H3':
+          return '###';
+        case 'H4':
+          return '####';
+        case 'H5':
+          return '#####';
+        case 'H6':
+          return '######';
+      }
     };
 
     return StoryEditView;

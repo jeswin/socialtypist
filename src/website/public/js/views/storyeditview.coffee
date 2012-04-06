@@ -12,23 +12,26 @@ class StoryEditView
     
     
     render: () =>
-        @renderTitle()        
-        @renderParts()        
+        @createTitle()        
+        @createParts()        
         
 
     
-    renderTitle: () =>
+    createTitle: () =>
         @container.append "<div class=\"editable title\"><h1 class=\"title\">#{story.title}</h1></div>"
         title = @container.find('.editable.title')
         title.data 'title', story.title
-        @bindTitleEditClick title
-        
+        title.click () =>
+            
 
 
     editTitle: () =>
         editable = $('#story-editor .editable.title')        
+
+        editable.unbind 'click' #unbind for now. rebind once we are done editing.
         editable.addClass 'selected'
         val = editable.data 'title'
+
         editable.html "
             <form class=\"title-editor\">
                 <input type=\"text\" class=\"span6\" /><br />
@@ -52,11 +55,12 @@ class StoryEditView
             @addSection 'start'
             return false           
 
-            
+   
 
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
-        @bindTitleEditClick editable
+        editable.click () =>
+            @editTitle()
         editable.removeClass 'selected'
         editable.html "<h1 class=\"title\">#{$('.title-editor input').val()}</h1>"
         
@@ -64,13 +68,14 @@ class StoryEditView
     
     cancelTitleEdit: () =>
         editable = $('#story-editor .editable.title')
-        @bindTitleEditClick editable
+        editable.click () =>
+            @editTitle()
         editable.removeClass 'selected'
         editable.html "<h1 class=\"title\">#{editable.data 'title'}</h1>"        
         
 
 
-    renderParts: () =>
+    createParts: () =>
         @container.append '<ul id="part-editor" class="story"></ul>'
         @container.append '<p class="add-section"><span class="plus">+</span><a class="small action" href="#">add new section</a></p>'
         @container.find('.add-section a').click () =>
@@ -81,139 +86,135 @@ class StoryEditView
                     
         if @story._objects.parts.length        
             for part in @story._objects.parts
-                previous = @renderPart part, previous
-        #else...
+                editable = @createPartContainer part, editable
+                editable.data 'part', part 
+                @renderPartContent editable  
 
-    
 
-    renderPart: (part, previousElement) =>        
+
+    createPartContainer: (part, previousElement) =>
         #See if the part is already there. Happens in case of an update.
-        partElem = @editor.find("#storypart_#{part._id}")
+        editable = @editor.find("#storypart_#{part._id}")
         
         #if the part is not found, create it.
-        if not partElem.length                
+        if not editable.length                
             #first item?
             if not previousElement
                 @editor.prepend "<li class=\"content editable\" id=\"storypart_#{part._id}\"><br /></li>"
             else
                 $("<li class=\"content editable\" id=\"storypart_#{part._id}\"></li>").insertAfter previousElement
     
-            partElem = @editor.find("#storypart_#{part._id}")                
-            
-        partElem.data 'part', part      
+            editable = @editor.find("#storypart_#{part._id}")                
         
-        switch part.type
-            when 'HEADING' then @renderHeadingPart partElem
-            when 'TEXT' then @renderTextPart partElem
-            when 'IMAGE' then @renderImagePart partElem
-            when 'VIDEO' then @renderVideoPart partElem  
-                                    
-        @bindPartEditClick partElem
-                                 
-        return partElem
-
-
-
-    bindTitleEditClick: (title) =>
-        title.click () =>
-            title.unbind 'click' #unbind for now. rebind once we are done editing.
-            @editTitle()            
-    
-    
-    
-    bindPartEditClick: (partElem) =>
-        partElem.click () =>
-            partElem.unbind 'click' #unbind for now. rebind once we are done editing.
-            @editPart partElem
-
-
-
-    renderHeadingPart: (partElem) =>
-        part = partElem.data 'part'
-
-        headingSize = switch part.size
-            when 'H1' then '#'
-            when 'H2' then '##'
-            when 'H3' then '###'
-            when 'H4' then '####'
-            when 'H5' then '#####'
-            when 'H6' then '######'                                                
-            
-        partElem.html @showdown.makeHtml headingSize + part.value           
+        return editable        
     
 
 
-    renderTextPart: (partElem) =>
-        part = partElem.data 'part'
-        partElem.html @showdown.makeHtml part.value           
+    renderPartContent: (editable) =>
 
-
-
-    renderImagePart: (partElem) =>
-        part = partElem.data 'part'
-        alt = part.alt ? ''
-        partElem.html "<img src=\"#{part.value}\" alt=\"#{alt}\" />"
-
-
-
-    renderVideoPart: (partElem) =>
-        part = partElem.data 'part'
-        partElem.html @showdown.makeHtml part.value           
-
-            
-        
-    editPart: (elem) ->
-        part = elem.data 'part'
-        elem.addClass 'selected'
-        
-        switch part.type
-            when 'HEADING' then @editHeadingPart elem
-            when 'TEXT' then @editTextPart elem
-            when 'IMAGE' then @editImagePart elem
-            when 'VIDEO' then @editVideoPart elem
+        editable.click () =>
+            editable.unbind 'click' #unbind for now. rebind once we are done editing.
+            @editPart editable
                 
-        elem.find('.save').click () =>
-            @savePart elem
+        switch editable.data('part').type
+            when 'HEADING' then @renderHeadingPart editable
+            when 'TEXT' then @renderTextPart editable
+            when 'IMAGE' then @renderImagePart editable
+            when 'VIDEO' then @renderVideoPart editable  
+                                    
+        return editable
+
+
+
+    renderHeadingPart: (editable) =>
+        part = editable.data 'part'
+        editable.html @makeHtml @getHeadingPrefix(part.size) + part.value     
+    
+
+
+    renderTextPart: (editable) =>
+        part = editable.data 'part'
+        editable.html @makeHtml part.value           
+
+
+
+    renderImagePart: (editable) =>
+        part = editable.data 'part'
+        alt = part.alt ? ''
+        editable.html "<img src=\"#{part.value}\" alt=\"#{alt}\" />"
+
+
+
+    renderVideoPart: (editable) =>
+        part = editable.data 'part'
+        editable.html @makeHtml part.value           
+
+            
+        
+    editPart: (editable) ->
+        part = editable.data 'part'
+        editable.addClass 'selected'
+        
+        switch part.type
+            when 'HEADING' then @editHeadingPart editable
+            when 'TEXT' then @editTextPart editable
+            when 'IMAGE' then @editImagePart editable
+            when 'VIDEO' then @editVideoPart editable
+
+        editable.find('.cancel').click () =>
+            @cancelPartEdit editable
             return false
 
-        elem.find('.cancel').click () =>
-            @cancelPartEdit elem
-            return false
-
-        elem.find('.delete').click () =>
-            @deletePart elem
+        editable.find('.delete').click () =>
+            @deletePart editable
             return false
             
-        elem.find('.insert').click () =>
-            @addSection elem
+        editable.find('.insert').click () =>
+            @addSection editable
             return false
             
-        elem.find('textarea').focus()    
+        editable.find('textarea').focus()    
         
         
         
-    editHeadingPart: (elem) =>   
-        part = elem.data 'part'         
-        elem.html "
+    editHeadingPart: (editable) =>   
+        part = editable.data 'part'         
+        editable.html "
             <form>
-                <input type=\"text\" class=\"span6\" value=\"#{part.value}\" />
+                <select class=\"size span2\">
+                    <option>H2</option>
+                    <option>H3</option>
+                    <option>H4</option>
+                    <option>H5</option>
+                    <option>H6</option>                    
+                </select>
+                <br />
+                <input type=\"text\" class=\"span6\" value=\"#{part.value ? ''}\" />
                 <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
-
+        editable.find('.size').val(part.size ? 'H2')
                 
-    editTextPart: (elem) =>                   
-        part = elem.data 'part'
+        editable.find('.save').click () =>
+            @savePart editable, () =>
+                part.size = editable.find('select').val()
+                part.value = editable.find('input').val()
+                editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
+                                
+                
+                
+    editTextPart: (editable) =>                   
+        part = editable.data 'part'
         
-        if elem.height() > 480
+        if editable.height() > 480
             rows = 28
-        else if elem.height() > 240
+        else if editable.height() > 240
             rows = 16
         else
             rows = 8
                 
-        elem.html "
+        editable.html "
             <form>
                 <textarea rows=\"#{rows}\">#{part.value}</textarea>
                 <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
@@ -221,10 +222,21 @@ class StoryEditView
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
+        editable.find('.save').click () =>
+            editable.click () =>
+                @editPart editable
+            part = editable.data 'part'
+            #do save on server
+            editable.removeClass 'selected'
+            part.value = editable.find('textarea').val()
+            editable.html @makeHtml editable.find('textarea').val()
+            #do save on server
+            return false
 
-    editImagePart: (elem) =>        
-        part = elem.data 'part'
-        elem.html "
+
+    editImagePart: (editable) =>        
+        part = editable.data 'part'
+        editable.html "
             <form>
                 <input type=\"text\" class=\"span6\" value=\"#{part.value}\" />
                 <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
@@ -233,9 +245,9 @@ class StoryEditView
             </form>"
 
 
-    editVideoPart: (elem) =>        
-        part = elem.data 'part'
-        elem.html "
+    editVideoPart: (editable) =>        
+        part = editable.data 'part'
+        editable.html "
             <form>
                 <input type=\"text\" class=\"span6\" value=\"#{part.value}\" />
                 <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
@@ -244,31 +256,35 @@ class StoryEditView
             </form>"
 
 
+    
+    savePart: (editable, fnEdit) =>
+        editable.click () =>
+            @editPart editable
+        editable.removeClass 'selected'
+        
+        fnEdit()
 
-    
-    savePart: (elem) =>
-        @bindPartEditClick elem        
-        part = elem.data 'part'
         #do save on server
-        elem.removeClass 'selected'
-        part.value = elem.find('textarea').val()
-        elem.html @showdown.makeHtml elem.find('textarea').val()
-        #do save on server
-        
-        
-    cancelPartEdit: (elem) =>
-        @bindPartEditClick elem        
-        part = elem.data 'part'
-        elem.removeClass 'selected'
-        elem.html @showdown.makeHtml part.value
+        part = editable.data 'part'
+
+        return false
+
+       
+    cancelPartEdit: (editable) =>
+        editable.click () =>
+            @editPart editable
+        part = editable.data 'part'
+        editable.removeClass 'selected'
+        editable.html @makeHtml part.value
     
     
     
-    deletePart: (elem) =>
-        @bindPartEditClick elem        
-        part = elem.data 'part'
+    deletePart: (editable) =>
+        editable.click () =>
+            @editPart editable
+        part = editable.data 'part'
         #do delete on server.
-        elem.remove()
+        editable.remove()
 
     
     addSection: (previous) =>
@@ -282,7 +298,7 @@ class StoryEditView
     
         content = "
             <li class=\"unsaved form\">
-                <select class=\"part-type\">
+                <select class=\"part-type span2\">
                     <option value=\"HEADING\">Heading</option>
                     <option value=\"TEXT\" selected=\"selected\">Text</option>
                     <option value=\"IMAGE\">Image</option>
@@ -306,15 +322,33 @@ class StoryEditView
             added = previous.next()
             
         added.find('.add').click () =>
-            part = { type: added.find('.part-type').val() }
-            @renderPart part, added.previous()
-            
+            part = { type: added.find('.part-type').val(), _id: SocialTypist.Utils.uniqueId() }
+            editable = @createPartContainer part, added.prev()
+            added.remove()
+            editable.data 'part', part 
+            @editPart editable
+            return false
             
         added.find('.cancel').click () =>
             added.remove()
             return false
 
+    makeHtml: (markdown) =>
+        if markdown
+            @showdown.makeHtml markdown
+        else
+            ''
+
     
+    getHeadingPrefix: (size) =>
+        switch size
+            when 'H1' then '#'
+            when 'H2' then '##'
+            when 'H3' then '###'
+            when 'H4' then '####'
+            when 'H5' then '#####'
+            when 'H6' then '######'                                                
+            
                 
 this.SocialTypist.StoryEditView = StoryEditView
     

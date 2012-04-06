@@ -1,5 +1,5 @@
 body { background: #fff url(/public/images/white_texture.png) repeat }
-body, div, p, ul, ol, h1, h2, h3 { font-family: 'Abril Fatface', cursives }
+body, div, p, ul, ol, h1, h2, h3, h4, h5, h6 {  }
 
 form, form input, form select, form textarea, form button, form label, form submit, form p, form p label, a.action, a.btn,
         .form, .form p, .form span { font-family: 'Bitter', serif; }
@@ -14,19 +14,19 @@ a.action { padding-left: 4px; }
 .padded { margin-left: 12px !important}
 
 /* MAIN HEADING */
-.container > h1 { text-align: center; font-size: 80px; margin-top: 64px; }
+.container > h1 { text-align: center; font-size: 80px; margin-top: 64px; font-family: 'Abril Fatface', cursives }
     .container > h1 > a, .container > h1 > a:hover, .container > h1 > a:visited { color: #333; text-decoration: none }
 
 
 /* DESCRIPTION AND LINKS */
-.container > p.desc { margin-top: 40px; text-align: center; font-size: 32px; color: #666 }
-.container > p.main-links { margin-top: 40px; text-align: center; font-size: 24px; font-weight: lighter }
+.container > p.desc { margin-top: 40px; text-align: center; font-size: 32px; color: #666; font-family: 'Abril Fatface', cursives }
+.container > p.main-links { margin-top: 40px; text-align: center; font-size: 24px; font-weight: lighter; font-family: 'Abril Fatface', cursives }
     .container > p.main-links a { padding: 6px; }
         .container > p.main-links a.selected { color: #666; background: #eee; border-radius: 3px; }
 
 /* LOGIN */
 .container.login { text-align: right; margin-top: 32px; } 
-    .container.login p { font-size: 20px; }
+    .container.login p { font-size: 20px; font-family: 'Abril Fatface', cursives }
     .container.login p img { height: 40px; width: 40px; margin-top: -8px }
 
 
@@ -44,6 +44,7 @@ a.action { padding-left: 4px; }
 
 
 /* STORY */
+.story h1, .story h2, .story h3, .story h4, .story h5, .story h6  { font-family: 'Abril Fatface', cursives } 
 .story h1 { font-size: 32px; margin-top: 16px; margin-bottom: 8px }
     .story h1.title { margin-top: 0px;   }
 .story h2 { font-size: 24px; margin-top: 12px; margin-bottom: 6px }
@@ -92,6 +93,6 @@ a.action { padding-left: 4px; }
     .home .latest .update .story-link { color: #333; font-size: 16px; font-family: 'Bitter', serif; }
     .home .latest .update .subtext { font-size: 12px; font-style: italic; font-family: 'Bitter', serif; }
 
-    .home .featured h3, .home .latest > h3 { text-transform: uppercase; }
-
+    .home .featured > h3, .home .latest > h3 { text-transform: uppercase; font-family: 'Abril Fatface', cursives }
+        .home .featured .authors { font-family: 'Abril Fatface', cursives }
 
