@@ -47,13 +47,13 @@ class Story extends BaseModel
             super () =>
                 async.series [
                         ((cb) =>
-                            part = {}
+                            part = new Story._models.StoryPart()
                             part.type = "HEADING"
                             part.size = 'H2'
                             part.value = "Sample Heading. Click to edit."
                             @addPart part, null, user, cb),                        
                         ((cb) =>
-                            part = {}
+                            part = new Story._models.StoryPart()
                             part.type = "TEXT"
                             part.value = "This is some sample content. Click to edit."
                             @addPart part, [@parts[0]], user, cb)                        
@@ -79,17 +79,20 @@ class Story extends BaseModel
             part.author = user
             part.story = @_id.toString()
             part.save () =>
-                # previousParts will be originally of the form [ad,sv,fd,cf,dg]. 
-                # We need to start looking from the bottom, since current part was added after dg.
-                previousParts = previousParts.reverse()
                         
                 insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.
-                for previous in previousParts
-                    #Insert after the first found previous part.
-                    index = @parts.indexOf previous
-                    if index != -1
-                        insertAt = index
-                        break
+                
+                # previousParts will be originally of the form [ad,sv,fd,cf,dg]. 
+                # We need to start looking from the bottom, since current part was added after dg.
+                if previousParts
+                    previousParts = previousParts.reverse()
+                    
+                    for previous in previousParts
+                        #Insert after the first found previous part.
+                        index = @parts.indexOf previous
+                        if index != -1
+                            insertAt = index + 1
+                            break
                         
                 @parts.splice insertAt, 0, part._id.toString()                    
                 @save user, cb

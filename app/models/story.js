@@ -125,14 +125,14 @@
           return async.series([
             (function(cb) {
               var part;
-              part = {};
+              part = new Story._models.StoryPart();
               part.type = "HEADING";
               part.size = 'H2';
               part.value = "Sample Heading. Click to edit.";
               return _this.addPart(part, null, user, cb);
             }), (function(cb) {
               var part;
-              part = {};
+              part = new Story._models.StoryPart();
               part.type = "TEXT";
               part.value = "This is some sample content. Click to edit.";
               return _this.addPart(part, [_this.parts[0]], user, cb);
@@ -167,14 +167,16 @@
         part.story = this._id.toString();
         return part.save(function() {
           var index, insertAt, previous, _i, _len;
-          previousParts = previousParts.reverse();
           insertAt = 0;
-          for (_i = 0, _len = previousParts.length; _i < _len; _i++) {
-            previous = previousParts[_i];
-            index = _this.parts.indexOf(previous);
-            if (index !== -1) {
-              insertAt = index;
-              break;
+          if (previousParts) {
+            previousParts = previousParts.reverse();
+            for (_i = 0, _len = previousParts.length; _i < _len; _i++) {
+              previous = previousParts[_i];
+              index = _this.parts.indexOf(previous);
+              if (index !== -1) {
+                insertAt = index + 1;
+                break;
+              }
             }
           }
           _this.parts.splice(insertAt, 0, part._id.toString());

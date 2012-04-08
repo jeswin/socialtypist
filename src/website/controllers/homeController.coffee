@@ -6,6 +6,8 @@ models = new (require '../../models').Models(dbconf.default)
 class HomeController extends controller.Controller
     constructor: () ->
 
+
+
     index: (req, res, next) =>
         res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req) }
         
