@@ -22,11 +22,15 @@
     function StoriesController() {
       this.item = __bind(this.item, this);
 
+      this.updatePart = __bind(this.updatePart, this);
+
+      this.saveTitle = __bind(this.saveTitle, this);
+
       this.edit = __bind(this.edit, this);
 
-      this.write_post = __bind(this.write_post, this);
+      this.create_post = __bind(this.create_post, this);
 
-      this.write = __bind(this.write, this);
+      this.create = __bind(this.create, this);
 
       this.index = __bind(this.index, this);
 
@@ -44,13 +48,13 @@
       });
     };
 
-    StoriesController.prototype.write = function(req, res, next) {
-      return res.render('stories/write.hbs', {
+    StoriesController.prototype.create = function(req, res, next) {
+      return res.render('stories/create.hbs', {
         loginStatus: this.getLoginStatus(req)
       });
     };
 
-    StoriesController.prototype.write_post = function(req, res, next) {
+    StoriesController.prototype.create_post = function(req, res, next) {
       var story,
         _this = this;
       story = new models.Story();
@@ -74,6 +78,31 @@
           return res.render('stories/edit.hbs', {
             loginStatus: _this.getLoginStatus(req),
             story: JSON.stringify(story)
+          });
+        });
+      });
+    };
+
+    StoriesController.prototype.saveTitle = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        story.title = req.body.title;
+        return story.save(req.session.user._id, function() {
+          res.contentType('json');
+          return res.send({
+            success: true
+          });
+        });
+      });
+    };
+
+    StoriesController.prototype.updatePart = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        return story.updatePart(new models.StoryPart(req.body.part), req.session.user._id, function() {
+          res.contentType('json');
+          return res.send({
+            success: true
           });
         });
       });

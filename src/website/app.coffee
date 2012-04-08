@@ -42,10 +42,11 @@ findHandler = (name, getHandler) ->
 app.get '/', findHandler('home', (c) -> c.index)
 app.post '/addSession', findHandler('home', (c) -> c.addSession)
 app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
-app.get '/stories/write', findHandler('stories', (c) -> c.write)
-app.post '/stories/write', findHandler('stories', (c) -> c.write_post)
+app.get '/stories/create', findHandler('stories', (c) -> c.create)
+app.post '/stories/create', findHandler('stories', (c) -> c.create_post)
 app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.edit)
-
+app.post '/stories/:storyid/saveTitle', findHandler('stories', (c) -> c.saveTitle)
+app.post '/stories/:storyid/updatePart', findHandler('stories', (c) -> c.updatePart)
 
 # handle all app errors - 500
 app.use (err, req, res, next) ->

@@ -113,9 +113,8 @@
 
 
     Story.prototype.save = function(user, cb) {
-      var _ref,
-        _this = this;
-      if (!((_ref = this.parts) != null ? _ref.length : void 0)) {
+      var _this = this;
+      if (!this._id) {
         this.createdBy = user;
         this.owners = [user];
         this.authors = [];

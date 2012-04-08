@@ -38,7 +38,7 @@ class Story extends BaseModel
         Saves a story.
     ###
     save: (user, cb) =>
-        if not @parts?.length
+        if not @_id
             @createdBy = user
             @owners = [user]
             @authors = []
@@ -103,7 +103,7 @@ class Story extends BaseModel
     
     
     updatePart: (part, user, cb) =>
-        if @isAuthor user                            
+        if @isAuthor user
             part.save cb 
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }

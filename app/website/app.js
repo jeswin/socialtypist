@@ -75,16 +75,24 @@
     return c.removeSession;
   }));
 
-  app.get('/stories/write', findHandler('stories', function(c) {
-    return c.write;
+  app.get('/stories/create', findHandler('stories', function(c) {
+    return c.create;
   }));
 
-  app.post('/stories/write', findHandler('stories', function(c) {
-    return c.write_post;
+  app.post('/stories/create', findHandler('stories', function(c) {
+    return c.create_post;
   }));
 
   app.get('/stories/:storyid/edit', findHandler('stories', function(c) {
     return c.edit;
+  }));
+
+  app.post('/stories/:storyid/saveTitle', findHandler('stories', function(c) {
+    return c.saveTitle;
+  }));
+
+  app.post('/stories/:storyid/updatePart', findHandler('stories', function(c) {
+    return c.updatePart;
   }));
 
   app.use(function(err, req, res, next) {

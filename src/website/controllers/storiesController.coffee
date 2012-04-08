@@ -18,12 +18,12 @@ class StoriesController extends controller.Controller
         
         
             
-    write: (req, res, next) =>
-        res.render 'stories/write.hbs', { loginStatus: @getLoginStatus(req) }
+    create: (req, res, next) =>
+        res.render 'stories/create.hbs', { loginStatus: @getLoginStatus(req) }
         
         
     
-    write_post: (req, res, next) =>
+    create_post: (req, res, next) =>
         story = new models.Story()
         story.title = req.body.title
         story.description = req.body.description
@@ -42,6 +42,23 @@ class StoriesController extends controller.Controller
                 res.render 'stories/edit.hbs', { loginStatus: @getLoginStatus(req), story: JSON.stringify story }
         
         
+        
+    saveTitle: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.title = req.body.title
+            story.save req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+        
+        
+    
+    updatePart: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.updatePart new models.StoryPart(req.body.part), req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+                
+    
           
     item: (req, res, next) =>
         models.Story.get req.params.id, (story) =>

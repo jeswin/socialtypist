@@ -65,12 +65,15 @@ class StoryEditView
    
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
-        editable.click () =>
-            @editTitle()
-        editable.removeClass 'selected'
         val = $('.title-editor input').val()
-        editable.html "<h1 class=\"title\">#{val}</h1>"
-        editable.data 'title', val
+        $.post "/stories/#{story._id}/saveTitle", { title: val }, (response) =>
+            console.log response
+            if response.success
+                editable.click () =>
+                    @editTitle()
+                editable.removeClass 'selected'
+                editable.html "<h1 class=\"title\">#{val}</h1>"
+                editable.data 'title', val
         
 
     
@@ -209,12 +212,16 @@ class StoryEditView
         
         editable.find('.size').val(part.size ? 'H2')
         
+        fnUpdatePart = () =>
+            part.size = editable.find('select').val()
+            part.value = editable.find('input').val()
+        
+        fnAfterSave = () =>
+            editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
+        
         save = () =>
-            @savePart editable, () =>
-                part.size = editable.find('select').val()
-                part.value = editable.find('input').val()
-                editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
-                        
+            @updatePart editable, fnUpdatePart, fnAfterSave
+                
         editable.find('.save').click save
                                 
         #Pressing enter in the input box should do a save. 
@@ -222,6 +229,7 @@ class StoryEditView
             if e.which == 13
                 save()
         
+
                 
     editTextPart: (editable) =>                   
         part = editable.data 'part'
@@ -244,12 +252,16 @@ class StoryEditView
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
-        editable.find('.save').click () =>
-            @savePart editable, () =>
-                part.value = editable.find('textarea').val()
-                editable.html @makeHtml editable.find('textarea').val()
+        fnUpdatePart = () =>
+            part.value = editable.find('textarea').val()
             
+        fnAfterSave = () =>
+            editable.html @makeHtml part.value
 
+        editable.find('.save').click () =>
+            @updatePart editable, fnUpdatePart, fnAfterSave
+                
+            
 
     editImagePart: (editable) =>        
         part = editable.data 'part'
@@ -264,12 +276,16 @@ class StoryEditView
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
-        editable.find('.save').click () =>
-            @savePart editable, () =>
-                src = editable.find('input').val()
-                part.value = src
-                editable.html @makeHtml "<div class=\"media\"><img src=\"#{src}\" alt=\"\" /></div>"
+        fnUpdatePart = () =>
+            src = editable.find('input').val()
+            part.value = src
 
+        fnAfterSave = () =>
+            editable.html @makeHtml "<div class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></div>"
+
+        editable.find('.save').click () =>
+            @updatePart editable, fnUpdatePart, fnAfterSave
+                
 
 
     editVideoPart: (editable) =>        
@@ -284,31 +300,37 @@ class StoryEditView
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
-
+            
+        fnUpdatePart = () =>
+            url = editable.find('input').val()
+            part.value = url
+            
+        fnAfterSave = () =>
+            r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/
+            res = part.value.match(r)
+            if res 
+                videoId = res[1]              
+                embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
+                editable.html embed
+            
+            
         editable.find('.save').click () =>
-            @savePart editable, () =>
-                url = editable.find('input').val()
-                r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/
-                res = url.match(r)
-                part.value = url
-                if res 
-                    videoId = res[1]              
-                    embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
-                    editable.html embed
+            @updatePart editable, fnUpdatePart, fnAfterSave
                 
                 
     
-    savePart: (editable, fnEdit) =>
-        editable.click () =>
-            @editPart editable
-        editable.removeClass 'selected'
-        
-        fnEdit()
-
-        #do save on server
+    updatePart: (editable, fnUpdatePart, fnAfterSave) =>
+        fnUpdatePart()
         part = editable.data 'part'
+        $.post "/stories/#{@story._id}/updatePart", { part: part }, (response) =>
+            if response.success
+                editable.click () =>
+                    @editPart editable
+                editable.removeClass 'selected'                
+                fnAfterSave()
 
         return false
+
 
        
     cancelPartEdit: (editable) =>
