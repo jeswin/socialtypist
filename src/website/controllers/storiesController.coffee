@@ -54,9 +54,15 @@ class StoriesController extends controller.Controller
     
     updatePart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.updatePart new models.StoryPart(req.body.part), req.session.user._id, () =>
-                res.contentType 'json'
-                res.send { success: true }   
+            if req.body.part._id?        
+                story.updatePart new models.StoryPart(req.body.part), req.session.user._id, () =>
+                    res.contentType 'json'
+                    res.send { success: true }   
+            else
+                part = new models.StoryPart(req.body.part)
+                story.addPart part, req.body.previousParts, req.session.user._id, () =>
+                    res.contentType 'json'
+                    res.send { success: true, partId: part._id }
                 
     
           

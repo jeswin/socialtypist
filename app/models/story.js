@@ -154,8 +154,8 @@
 
     /*
             Adds a new part to the story.
-                1. previousParts is a list of part-ids which occur before the newly added part. 
-                   Insertion will happen at the first "previous-part" found in the @parts collection, when previousParts is walked backwards.
+                1. previousParts is a list of part-ids which occur before the newly added part. (Walked backwards in the DOM, if dom has #a, #b, #c, previousParts = [c,b,a])
+                   Insertion will happen at the first "previous-part" found in the @parts collection.
     */
 
 
@@ -168,7 +168,6 @@
           var index, insertAt, previous, _i, _len;
           insertAt = 0;
           if (previousParts) {
-            previousParts = previousParts.reverse();
             for (_i = 0, _len = previousParts.length; _i < _len; _i++) {
               previous = previousParts[_i];
               index = _this.parts.indexOf(previous);

@@ -220,7 +220,7 @@ class StoryEditView
             editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
         
         save = () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
         editable.find('.save').click save
                                 
@@ -259,7 +259,7 @@ class StoryEditView
             editable.html @makeHtml part.value
 
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
             
 
@@ -284,7 +284,7 @@ class StoryEditView
             editable.html @makeHtml "<div class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></div>"
 
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
 
 
@@ -315,18 +315,28 @@ class StoryEditView
             
             
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
                 
     
-    updatePart: (editable, fnUpdatePart, fnAfterSave) =>
+    savePart: (editable, fnUpdatePart, fnAfterSave) =>
         fnUpdatePart()
         part = editable.data 'part'
-        $.post "/stories/#{@story._id}/updatePart", { part: part }, (response) =>
+        
+        postData = {}
+        if part.isNew
+            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
+            delete part.isNew
+            delete part._id
+        postData.part = part
+        
+        $.post "/stories/#{@story._id}/savePart", postData, (response) =>
             if response.success
+                if response.partId
+                    part._id = response.partId
                 editable.click () =>
                     @editPart editable
-                editable.removeClass 'selected'                
+                editable.removeClass 'selected'      
                 fnAfterSave()
 
         return false
@@ -389,6 +399,7 @@ class StoryEditView
             part = { 
                 type: added.find('.part-type').val(), 
                 _id: SocialTypist.Utils.uniqueId(),
+                isNew: true,
                 value: ''
             }
             editable = @createPartContainer part, added.prev()

@@ -70,8 +70,8 @@ class Story extends BaseModel
   
     ###
         Adds a new part to the story.
-            1. previousParts is a list of part-ids which occur before the newly added part. 
-               Insertion will happen at the first "previous-part" found in the @parts collection, when previousParts is walked backwards.
+            1. previousParts is a list of part-ids which occur before the newly added part. (Walked backwards in the DOM, if dom has #a, #b, #c, previousParts = [c,b,a])
+               Insertion will happen at the first "previous-part" found in the @parts collection. 
     ###
     addPart: (part, previousParts, user, cb) =>
         #only authors may add a part
@@ -82,11 +82,7 @@ class Story extends BaseModel
                         
                 insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.
                 
-                # previousParts will be originally of the form [ad,sv,fd,cf,dg]. 
-                # We need to start looking from the bottom, since current part was added after dg.
-                if previousParts
-                    previousParts = previousParts.reverse()
-                    
+                if previousParts                    
                     for previous in previousParts
                         #Insert after the first found previous part.
                         index = @parts.indexOf previous

@@ -21,7 +21,7 @@
 
       this.cancelPartEdit = __bind(this.cancelPartEdit, this);
 
-      this.updatePart = __bind(this.updatePart, this);
+      this.savePart = __bind(this.savePart, this);
 
       this.editVideoPart = __bind(this.editVideoPart, this);
 
@@ -275,7 +275,7 @@
         return editable.html(_this.makeHtml(_this.getHeadingPrefix(part.size) + part.value));
       };
       save = function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       };
       editable.find('.save').click(save);
       return editable.find('input').keypress(function(e) {
@@ -302,7 +302,7 @@
         return editable.html(_this.makeHtml(part.value));
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
@@ -320,7 +320,7 @@
         return editable.html(_this.makeHtml("<div class=\"media\"><img src=\"" + part.value + "\" alt=\"\" /></div>"));
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
@@ -345,19 +345,36 @@
         }
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
-    StoryEditView.prototype.updatePart = function(editable, fnUpdatePart, fnAfterSave) {
-      var part,
+    StoryEditView.prototype.savePart = function(editable, fnUpdatePart, fnAfterSave) {
+      var element, part, postData,
         _this = this;
       fnUpdatePart();
       part = editable.data('part');
-      $.post("/stories/" + this.story._id + "/updatePart", {
-        part: part
-      }, function(response) {
+      postData = {};
+      if (part.isNew) {
+        postData.previousParts = (function() {
+          var _i, _len, _ref, _results;
+          _ref = editable.prevAll();
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            element = _ref[_i];
+            if (!$(element).data('part').isNew) {
+              _results.push($(element).data('part')._id);
+            }
+          }
+          return _results;
+        })();
+        delete part.isNew;
+        delete part._id;
+      }
+      postData.part = part;
+      $.post("/stories/" + this.story._id + "/savePart", postData, function(response) {
         if (response.success) {
+          if (response.partId) part._id = response.partId;
           editable.click(function() {
             return _this.editPart(editable);
           });
@@ -416,6 +433,7 @@
         part = {
           type: added.find('.part-type').val(),
           _id: SocialTypist.Utils.uniqueId(),
+          isNew: true,
           value: ''
         };
         editable = _this.createPartContainer(part, added.prev());

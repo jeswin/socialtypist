@@ -99,12 +99,24 @@
     StoriesController.prototype.updatePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.updatePart(new models.StoryPart(req.body.part), req.session.user._id, function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+        var part;
+        if (req.body.part._id != null) {
+          return story.updatePart(new models.StoryPart(req.body.part), req.session.user._id, function() {
+            res.contentType('json');
+            return res.send({
+              success: true
+            });
           });
-        });
+        } else {
+          part = new models.StoryPart(req.body.part);
+          return story.addPart(part, req.body.previousParts, req.session.user._id, function() {
+            res.contentType('json');
+            return res.send({
+              success: true,
+              partId: part._id
+            });
+          });
+        }
       });
     };
 

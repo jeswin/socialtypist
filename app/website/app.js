@@ -91,7 +91,7 @@
     return c.saveTitle;
   }));
 
-  app.post('/stories/:storyid/updatePart', findHandler('stories', function(c) {
+  app.post('/stories/:storyid/savePart', findHandler('stories', function(c) {
     return c.updatePart;
   }));
 
