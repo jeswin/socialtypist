@@ -18,11 +18,12 @@ class StoryEditView
 
     
     createTitle: () =>
-        @container.append "<div class=\"editable title\"><h1 class=\"title\">#{story.title}</h1></div>"
+        @container.append "<div class=\"editable title\"><h1 class=\"title\">#{@story.title}</h1></div>"
         title = @container.find('.editable.title')
-        title.data 'title', story.title
+        title.data 'title', @story.title
         title.click () =>
             @editTitle()            
+
 
 
     editTitle: () =>
@@ -55,14 +56,21 @@ class StoryEditView
             @addSection 'start'
             return false           
 
-   
+        #Pressing enter in the input box should do a save. 
+        editable.find('input').keypress (e) =>
+            if e.which == 13
+                @saveTitle()
+                return false
 
+   
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
         editable.click () =>
             @editTitle()
         editable.removeClass 'selected'
-        editable.html "<h1 class=\"title\">#{$('.title-editor input').val()}</h1>"
+        val = $('.title-editor input').val()
+        editable.html "<h1 class=\"title\">#{val}</h1>"
+        editable.data 'title', val
         
 
     
@@ -111,9 +119,7 @@ class StoryEditView
 
 
     renderPartContent: (editable) =>
-
         editable.click () =>
-            editable.unbind 'click' #unbind for now. rebind once we are done editing.
             @editPart editable
                 
         switch editable.data('part').type
@@ -141,7 +147,7 @@ class StoryEditView
     renderImagePart: (editable) =>
         part = editable.data 'part'
         alt = part.alt ? ''
-        editable.html "<img src=\"#{part.value}\" alt=\"#{alt}\" />"
+        editable.html "<p class=\"image-container\"><img src=\"#{part.value}\" alt=\"#{alt}\" /></p>"
 
 
 
@@ -151,8 +157,9 @@ class StoryEditView
 
             
         
-    editPart: (editable) ->
+    editPart: (editable) =>
         part = editable.data 'part'
+        editable.unbind 'click' #unbind for now. rebind once we are done editing.
         editable.addClass 'selected'
         
         switch part.type
@@ -179,30 +186,42 @@ class StoryEditView
         
     editHeadingPart: (editable) =>   
         part = editable.data 'part'         
-        editable.html "
+        @createForm editable, "
             <form>
                 <select class=\"size span2\">
-                    <option>H2</option>
-                    <option>H3</option>
-                    <option>H4</option>
-                    <option>H5</option>
-                    <option>H6</option>                    
+                    <option value=\"H2\">H2</option>
+                    <option value=\"H3\">H3</option>
+                    <option value=\"H4\">H4</option>
+                    <option value=\"H5\">H5</option>
+                    <option value=\"H6\">H6</option>                    
                 </select>
                 <br />
                 <input type=\"text\" class=\"span6\" value=\"#{part.value ? ''}\" />
-                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
+                <p class=\"left\">
+                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>
+                </p>
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
+        
+        editable.find('select').focus()
+        
         editable.find('.size').val(part.size ? 'H2')
-                
-        editable.find('.save').click () =>
+        
+        save = () =>
             @savePart editable, () =>
                 part.size = editable.find('select').val()
                 part.value = editable.find('input').val()
                 editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
+                        
+        editable.find('.save').click save
                                 
-                
+        #Pressing enter in the input box should do a save. 
+        editable.find('input').keypress (e) =>
+            if e.which == 13
+                save()
+        
                 
     editTextPart: (editable) =>                   
         part = editable.data 'part'
@@ -214,48 +233,70 @@ class StoryEditView
         else
             rows = 8
                 
-        editable.html "
+        @createForm editable, "
             <form>
-                <textarea rows=\"#{rows}\">#{part.value}</textarea>
-                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
+                <textarea rows=\"#{rows}\">#{part.value ? ''}</textarea>
+                <p class=\"left\">
+                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                
+                </p>
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
         editable.find('.save').click () =>
-            editable.click () =>
-                @editPart editable
-            part = editable.data 'part'
-            #do save on server
-            editable.removeClass 'selected'
-            part.value = editable.find('textarea').val()
-            editable.html @makeHtml editable.find('textarea').val()
-            #do save on server
-            return false
+            @savePart editable, () =>
+                part.value = editable.find('textarea').val()
+                editable.html @makeHtml editable.find('textarea').val()
+            
 
 
     editImagePart: (editable) =>        
         part = editable.data 'part'
-        editable.html "
+        @createForm editable, "
             <form>
-                <input type=\"text\" class=\"span6\" value=\"#{part.value}\" />
-                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
+                Image url: <input type=\"text\" class=\"span5\" value=\"#{part.value ? ''}\" /> or <a href=\"#\" class=\"upload\">Upload file</a>
+                <p class=\"left\">
+                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                    
+                </p>
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
+
+        editable.find('.save').click () =>
+            @savePart editable, () =>
+                src = editable.find('input').val()
+                part.value = src
+                editable.html @makeHtml "<div class=\"media\"><img src=\"#{src}\" alt=\"\" /></div>"
+
 
 
     editVideoPart: (editable) =>        
         part = editable.data 'part'
-        editable.html "
+        @createForm editable, "
             <form>
-                <input type=\"text\" class=\"span6\" value=\"#{part.value}\" />
-                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
+                YouTube url: <input type=\"text\" class=\"span5\" value=\"#{part.value ? ''}\" />
+                <p class=\"left\">
+                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>
+                </p>
                 <hr />
                 <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
-
+        editable.find('.save').click () =>
+            @savePart editable, () =>
+                url = editable.find('input').val()
+                r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/
+                res = url.match(r)
+                part.value = url
+                if res 
+                    videoId = res[1]              
+                    embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
+                    editable.html embed
+                
+                
     
     savePart: (editable, fnEdit) =>
         editable.click () =>
@@ -271,11 +312,9 @@ class StoryEditView
 
        
     cancelPartEdit: (editable) =>
-        editable.click () =>
-            @editPart editable
         part = editable.data 'part'
         editable.removeClass 'selected'
-        editable.html @makeHtml part.value
+        @renderPartContent editable
     
     
     
@@ -285,6 +324,7 @@ class StoryEditView
         part = editable.data 'part'
         #do delete on server.
         editable.remove()
+
 
     
     addSection: (previous) =>
@@ -321,16 +361,29 @@ class StoryEditView
             $(content).insertAfter previous
             added = previous.next()
             
-        added.find('.add').click () =>
+        added.find('select').focus()
+    
+        addSection = () =>
             part = { 
                 type: added.find('.part-type').val(), 
-                _id: SocialTypist.Utils.uniqueId() 
+                _id: SocialTypist.Utils.uniqueId(),
+                value: ''
             }
             editable = @createPartContainer part, added.prev()
             added.remove()
             editable.data 'part', part 
             @editPart editable
+            
+        added.find('.add').click () =>
+            addSection()
             return false
+            
+        
+        #Add also if the user presses enter while on the select box.
+        added.find('select').keypress (e) =>
+            if e.which == 13
+                addSection()
+            
             
         added.find('.cancel').click () =>
             added.remove()
@@ -341,7 +394,15 @@ class StoryEditView
             @showdown.makeHtml markdown
         else
             ''
-
+            
+            
+    
+    createForm: (parent, html) =>
+        parent.html html
+        parent.children('form').last().submit () =>
+            false
+            
+            
     
     getHeadingPrefix: (size) =>
         switch size

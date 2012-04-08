@@ -5,13 +5,14 @@ form, form input, form select, form textarea, form button, form label, form subm
         .form, .form p, .form span { font-family: 'Bitter', serif; }
 form .help-inline { font-size: 13px; color: #999; font-family: 'Bitter', serif; }
 a.action { padding-left: 4px; }
-
+a.action.unsafe { color: #880000 }
 
 /* COMMON CLASSES */
 .clear { clear: both }
 .center { margin-left: auto; margin-right: auto; float: none }
 .small { font-size: 12px; }
 .padded { margin-left: 12px !important}
+
 
 /* MAIN HEADING */
 .container > h1 { text-align: center; font-size: 80px; margin-top: 64px; font-family: 'Abril Fatface', cursives }
@@ -47,11 +48,11 @@ a.action { padding-left: 4px; }
 .story h1, .story h2, .story h3, .story h4, .story h5, .story h6  { font-family: 'Abril Fatface', cursives } 
 .story h1 { font-size: 32px; margin-top: 16px; margin-bottom: 8px }
     .story h1.title { margin-top: 0px;   }
-.story h2 { font-size: 24px; margin-top: 12px; margin-bottom: 6px }
-.story h3 { font-size: 20px; margin-top: 8px; margin-bottom: 4px }
-.story h4 { font-size: 18px; margin-top: 6px; margin-bottom: 3px }
-.story h5 { font-size: 16px; margin-top: 6px; margin-bottom: 3px }
-.story h6 { font-size: 16px; margin-top: 5px; margin-bottom: 3px }
+.story h2 { font-size: 24px; margin-top: 12px; margin-bottom: 8px }
+.story h3 { font-size: 20px; margin-top: 8px; margin-bottom: 6px }
+.story h4 { font-size: 18px; margin-top: 6px; margin-bottom: 6px }
+.story h5 { font-size: 16px; margin-top: 6px; margin-bottom: 6px }
+.story h6 { font-size: 16px; margin-top: 5px; margin-bottom: 6px }
 
 
 .story .authors { font-weight: lighter; font-size: 16px; margin-bottom: 12px; }
@@ -61,6 +62,7 @@ a.action { padding-left: 4px; }
     .story .picture { width: 400px; padding: 12px 20px 12px 20px }
         .story img { max-width: 100% }
     .story h2 a, .story .authors a { color: #333 }
+    .story .media { padding: 12px; }
 
 
 /* STORY EDITOR */

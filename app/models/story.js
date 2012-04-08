@@ -28,10 +28,6 @@
 
       this.addAuthor = __bind(this.addAuthor, this);
 
-      this.addChange = __bind(this.addChange, this);
-
-      this.changePart = __bind(this.changePart, this);
-
       this.removePart = __bind(this.removePart, this);
 
       this.updatePart = __bind(this.updatePart, this);
@@ -53,6 +49,11 @@
       }
     };
 
+    /*
+            Gets the story with the specified id (string).
+    */
+
+
     Story.getById = function(id, cb) {
       return Story._database.findOne('stories', {
         '_id': Story._database.ObjectId(id)
@@ -61,8 +62,13 @@
       });
     };
 
+    /*
+            Gets all the parts in the story.
+    */
+
+
     Story.prototype.getParts = function(cb) {
-      var partid,
+      var partId,
         _this = this;
       return Story._database.find('storyparts', {
         '$or': (function() {
@@ -70,26 +76,26 @@
           _ref = this.parts;
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            partid = _ref[_i];
+            partId = _ref[_i];
             _results.push({
-              _id: Story._database.ObjectId(partid)
+              _id: Story._database.ObjectId(partId)
             });
           }
           return _results;
         }).call(this)
       }, function(err, parts) {
         return parts.toArray(function(err, items) {
-          var item, part, partid, results, _i, _len, _ref;
+          var item, part, partId, results, _i, _len, _ref;
           results = [];
           _ref = _this.parts;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            partid = _ref[_i];
+            partId = _ref[_i];
             part = ((function() {
               var _j, _len1, _results;
               _results = [];
               for (_j = 0, _len1 = items.length; _j < _len1; _j++) {
                 item = items[_j];
-                if (item._id.toString() === partid) _results.push(item);
+                if (item._id.toString() === partId) _results.push(item);
               }
               return _results;
             })())[0];
@@ -101,6 +107,11 @@
       });
     };
 
+    /*
+            Saves a story.
+    */
+
+
     Story.prototype.save = function(user, cb) {
       var _ref,
         _this = this;
@@ -109,28 +120,29 @@
         this.owners = [user];
         this.authors = [];
         this.parts = [];
+        this.published = false;
         return Story.__super__.save.call(this, function() {
           return async.series([
             (function(cb) {
               var part;
-              part = new Story._models.StoryPart();
+              part = {};
               part.type = "HEADING";
               part.size = 'H2';
               part.value = "Sample Heading. Click to edit.";
               return _this.addPart(part, null, user, cb);
             }), (function(cb) {
               var part;
-              part = new Story._models.StoryPart();
+              part = {};
               part.type = "TEXT";
               part.value = "This is some sample content. Click to edit.";
-              return _this.addPart(part, _this.parts[0], user, cb);
+              return _this.addPart(part, [_this.parts[0]], user, cb);
             })
           ], function() {
             return cb();
           });
         });
       } else {
-        if (this.isOwner(user._id.toString())) {
+        if (this.isOwner(user)) {
           return Story.__super__.save.call(this, cb);
         } else {
           throw {
@@ -141,13 +153,31 @@
       }
     };
 
-    Story.prototype.addPart = function(part, after, user, cb) {
+    /*
+            Adds a new part to the story.
+                1. previousParts is a list of part-ids which occur before the newly added part. 
+                   Insertion will happen at the first "previous-part" found in the @parts collection, when previousParts is walked backwards.
+    */
+
+
+    Story.prototype.addPart = function(part, previousParts, user, cb) {
       var _this = this;
-      if (this.isAuthor(user._id.toString())) {
+      if (this.isAuthor(user)) {
         part.author = user;
         part.story = this._id.toString();
         return part.save(function() {
-          _this.parts.splice(_this.parts.indexOf(after) + 1, 0, part._id.toString());
+          var index, insertAt, previous, _i, _len;
+          previousParts = previousParts.reverse();
+          insertAt = 0;
+          for (_i = 0, _len = previousParts.length; _i < _len; _i++) {
+            previous = previousParts[_i];
+            index = _this.parts.indexOf(previous);
+            if (index !== -1) {
+              insertAt = index;
+              break;
+            }
+          }
+          _this.parts.splice(insertAt, 0, part._id.toString());
           return _this.save(user, cb);
         });
       } else {
@@ -159,7 +189,7 @@
     };
 
     Story.prototype.updatePart = function(part, user, cb) {
-      if (this.isAuthor(user._id.toString())) {
+      if (this.isAuthor(user)) {
         return part.save(cb);
       } else {
         throw {
@@ -170,47 +200,24 @@
     };
 
     Story.prototype.removePart = function(part, user, cb) {
-      if (this.isAuthor(user._id.toString())) {
-        this.parts.splice(this.parts.indexOf(part._id.toString(), 1));
-        return this.save(cb);
+      var index;
+      if (this.isAuthor(user)) {
+        index = this.parts.indexOf(part._id.toString());
+        if (index !== -1) {
+          this.parts.splice(index, 1);
+          return this.save(cb);
+        }
       } else {
         throw {
           type: 'NOT_AUTHOR',
           message: 'You are not an author on this story. Cannot modify.'
         };
       }
-    };
-
-    Story.prototype.changePart = function(oldPart, newPart, user, cb) {
-      if (this.isAuthor(user._id.toString())) {
-        this.parts.splice(this.parts.indexOf(oldPart._id.toString(), 1, newPart._id.toString()));
-        return this.save(cb);
-      } else {
-        throw {
-          type: 'NOT_AUTHOR',
-          message: 'You are not an author on this story. Cannot modify.'
-        };
-      }
-    };
-
-    Story.prototype.addChange = function(change, cb) {
-      return change = 1;
     };
 
     Story.prototype.addAuthor = function(author, user, cb) {
-      var existing, u;
-      if (this.isOwner(user._id.toString())) {
-        existing = (function() {
-          var _i, _len, _ref, _results;
-          _ref = this.authors;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            u = _ref[_i];
-            if (u._id.toString() === author._id.toString()) _results.push(u);
-          }
-          return _results;
-        }).call(this);
-        if (!existing.length) {
+      if (this.isOwner(user)) {
+        if (this.authors.indexOf(author === -1)) {
           this.authors.push(author);
           return this.save(cb);
         }
@@ -222,27 +229,17 @@
       }
     };
 
-    Story.prototype.removeAuthor = function(authorId, user, cb) {
-      var existing, u;
-      if (this.isOwner(user._id.toString())) {
-        existing = (function() {
-          var _i, _len, _ref, _results;
-          _ref = this.authors;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            u = _ref[_i];
-            if (u._id.toString() === authorId) _results.push(u);
-          }
-          return _results;
-        }).call(this);
-        if (exiting.length) {
+    Story.prototype.removeAuthor = function(author, user, cb) {
+      var u;
+      if (this.isOwner(user)) {
+        if (this.authors.indexOf(author > -1)) {
           this.authors = (function() {
             var _i, _len, _ref, _results;
             _ref = this.authors;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               u = _ref[_i];
-              if (u._id.toString() !== authorId) _results.push(u);
+              if (u !== author) _results.push(u);
             }
             return _results;
           }).call(this);
@@ -257,19 +254,8 @@
     };
 
     Story.prototype.addOwner = function(owner, user, cb) {
-      var existing, u;
-      if (this.isOwner(user._id.toString())) {
-        existing = (function() {
-          var _i, _len, _ref, _results;
-          _ref = this.owners;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            u = _ref[_i];
-            if (u._id.toString() === owner._id.toString()) _results.push(u);
-          }
-          return _results;
-        }).call(this);
-        if (!existing.length) {
+      if (this.isOwner(user)) {
+        if (this.owners.indexOf(owner === -1)) {
           this.owners.push(owner);
           return this.save(cb);
         }
@@ -281,27 +267,17 @@
       }
     };
 
-    Story.prototype.removeOwner = function(ownerId, user, cb) {
-      var existing, u;
-      if (this.isOwner(user._id.toString())) {
-        existing = (function() {
-          var _i, _len, _ref, _results;
-          _ref = this.owners;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            u = _ref[_i];
-            if (u._id.toString() === ownerId) _results.push(u);
-          }
-          return _results;
-        }).call(this);
-        if (exiting.length) {
+    Story.prototype.removeOwner = function(owner, user, cb) {
+      var u;
+      if (this.isOwner(user)) {
+        if (this.owners.indexOf(owner > -1)) {
           this.owners = (function() {
             var _i, _len, _ref, _results;
             _ref = this.owners;
             _results = [];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               u = _ref[_i];
-              if (u._id.toString() !== ownerId) _results.push(u);
+              if (u !== owner) _results.push(u);
             }
             return _results;
           }).call(this);
@@ -315,44 +291,12 @@
       }
     };
 
-    Story.prototype.isAuthor = function(userId) {
-      var authors, owners, u;
-      authors = (function() {
-        var _i, _len, _ref, _results;
-        _ref = this.authors;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          u = _ref[_i];
-          if (u._id.toString() === userId) _results.push(u);
-        }
-        return _results;
-      }).call(this);
-      owners = (function() {
-        var _i, _len, _ref, _results;
-        _ref = this.owners;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          u = _ref[_i];
-          if (u._id.toString() === userId) _results.push(u);
-        }
-        return _results;
-      }).call(this);
-      return authors.length > 0 || owners.length > 0;
+    Story.prototype.isAuthor = function(user) {
+      return this.owners.indexOf(user > -1 || this.authors.indexOf(user > -1));
     };
 
-    Story.prototype.isOwner = function(userId) {
-      var matches, u;
-      matches = (function() {
-        var _i, _len, _ref, _results;
-        _ref = this.owners;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          u = _ref[_i];
-          if (u._id.toString() === userId) _results.push(u);
-        }
-        return _results;
-      }).call(this);
-      return matches.length > 0;
+    Story.prototype.isOwner = function(user) {
+      return this.owners.indexOf(user > -1);
     };
 
     return Story;
