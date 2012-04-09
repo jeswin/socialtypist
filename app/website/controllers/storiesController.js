@@ -22,27 +22,27 @@
     StoriesController.name = 'StoriesController';
 
     function StoriesController() {
-      this.item = __bind(this.item, this);
-
       this.getPartFromBody = __bind(this.getPartFromBody, this);
 
       this.upload = __bind(this.upload, this);
 
       this.publish = __bind(this.publish, this);
 
-      this.removePart = __bind(this.removePart, this);
+      this.deletePart = __bind(this.deletePart, this);
 
-      this.savePart = __bind(this.savePart, this);
+      this.updatePart = __bind(this.updatePart, this);
 
-      this.saveTitle = __bind(this.saveTitle, this);
+      this.createPart = __bind(this.createPart, this);
 
-      this.edit = __bind(this.edit, this);
+      this.update = __bind(this.update, this);
 
-      this.create_post = __bind(this.create_post, this);
+      this.editForm = __bind(this.editForm, this);
 
       this.create = __bind(this.create, this);
 
-      this.display = __bind(this.display, this);
+      this.createForm = __bind(this.createForm, this);
+
+      this.show = __bind(this.show, this);
 
       this.index = __bind(this.index, this);
 
@@ -60,23 +60,23 @@
       });
     };
 
-    StoriesController.prototype.display = function(req, res, next) {
+    StoriesController.prototype.show = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return res.render('stories/display.hbs', {
+        return res.render('stories/show.hbs', {
           loginStatus: _this.getLoginStatus(req),
           content: story.html
         });
       });
     };
 
-    StoriesController.prototype.create = function(req, res, next) {
+    StoriesController.prototype.createForm = function(req, res, next) {
       return res.render('stories/create.hbs', {
         loginStatus: this.getLoginStatus(req)
       });
     };
 
-    StoriesController.prototype.create_post = function(req, res, next) {
+    StoriesController.prototype.create = function(req, res, next) {
       var story,
         _this = this;
       story = new models.Story();
@@ -90,7 +90,7 @@
       });
     };
 
-    StoriesController.prototype.edit = function(req, res, next) {
+    StoriesController.prototype.editForm = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
         return story.getParts(function(err, parts) {
@@ -105,7 +105,7 @@
       });
     };
 
-    StoriesController.prototype.saveTitle = function(req, res, next) {
+    StoriesController.prototype.update = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
         story.title = req.body.title;
@@ -118,34 +118,37 @@
       });
     };
 
-    StoriesController.prototype.savePart = function(req, res, next) {
+    StoriesController.prototype.createPart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
         var part;
-        if (req.body.part._id != null) {
-          return story.updatePart(_this.getPartFromBody(req.body.part), req.session.user._id, function() {
-            res.contentType('json');
-            return res.send({
-              success: true
-            });
+        part = _this.getPartFromBody(req.body);
+        return story.createPart(part, req.body.previousParts, req.session.user._id, function() {
+          res.contentType('json');
+          return res.send({
+            success: true,
+            _id: part._id
           });
-        } else {
-          part = _this.getPartFromBody(req.body.part);
-          return story.addPart(part, req.body.previousParts, req.session.user._id, function() {
-            res.contentType('json');
-            return res.send({
-              success: true,
-              partId: part._id
-            });
-          });
-        }
+        });
       });
     };
 
-    StoriesController.prototype.removePart = function(req, res, next) {
+    StoriesController.prototype.updatePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.removePart(req.body.part, req.session.user._id, function() {
+        return story.updatePart(_this.getPartFromBody(req.body), req.session.user._id, function() {
+          res.contentType('json');
+          return res.send({
+            success: true
+          });
+        });
+      });
+    };
+
+    StoriesController.prototype.deletePart = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        return story.deletePart(req.params.partid, req.session.user._id, function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -177,13 +180,8 @@
       }
     };
 
-    StoriesController.prototype.getPartFromBody = function(bodyPart) {
-      return new models.StoryPart(bodyPart);
-    };
-
-    StoriesController.prototype.item = function(req, res, next) {
-      var _this = this;
-      return models.Story.get(req.params.id, function(story) {});
+    StoriesController.prototype.getPartFromBody = function(body) {
+      return new models.StoryPart(body);
     };
 
     return StoriesController;

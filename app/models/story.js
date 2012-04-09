@@ -32,11 +32,11 @@
 
       this.addAuthor = __bind(this.addAuthor, this);
 
-      this.removePart = __bind(this.removePart, this);
+      this.deletePart = __bind(this.deletePart, this);
 
       this.updatePart = __bind(this.updatePart, this);
 
-      this.addPart = __bind(this.addPart, this);
+      this.createPart = __bind(this.createPart, this);
 
       this.publish = __bind(this.publish, this);
 
@@ -128,13 +128,13 @@
               part.type = "HEADING";
               part.size = 'H2';
               part.value = "Sample Heading. Click to edit.";
-              return _this.addPart(part, null, user, cb);
+              return _this.createPart(part, null, user, cb);
             }), (function(cb) {
               var part;
               part = new Story._models.StoryPart();
               part.type = "TEXT";
               part.value = "This is some sample content. Click to edit.";
-              return _this.addPart(part, [_this.parts[0]], user, cb);
+              return _this.createPart(part, [_this.parts[0]], user, cb);
             })
           ], function() {
             return cb();
@@ -180,7 +180,7 @@
     */
 
 
-    Story.prototype.addPart = function(part, previousParts, user, cb) {
+    Story.prototype.createPart = function(part, previousParts, user, cb) {
       var _this = this;
       if (this.isAuthor(user)) {
         part.author = user;
@@ -222,7 +222,7 @@
       }
     };
 
-    Story.prototype.removePart = function(part, user, cb) {
+    Story.prototype.deletePart = function(part, user, cb) {
       var index;
       if (this.isAuthor(user)) {
         index = this.parts.indexOf(part);

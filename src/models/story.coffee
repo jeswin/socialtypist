@@ -57,12 +57,12 @@ class Story extends BaseModel
                             part.type = "HEADING"
                             part.size = 'H2'
                             part.value = "Sample Heading. Click to edit."
-                            @addPart part, null, user, cb),                        
+                            @createPart part, null, user, cb),                        
                         ((cb) =>
                             part = new Story._models.StoryPart()
                             part.type = "TEXT"
                             part.value = "This is some sample content. Click to edit."
-                            @addPart part, [@parts[0]], user, cb)                        
+                            @createPart part, [@parts[0]], user, cb)                        
                     ], () => cb()
                 
         else
@@ -96,7 +96,7 @@ class Story extends BaseModel
             1. previousParts is a list of part-ids which occur before the newly added part. (Walked backwards in the DOM, if dom has #a, #b, #c, previousParts = [c,b,a])
                Insertion will happen at the first "previous-part" found in the @parts collection. 
     ###
-    addPart: (part, previousParts, user, cb) =>
+    createPart: (part, previousParts, user, cb) =>
         #only authors may add a part
         if @isAuthor user
             part.author = user
@@ -131,7 +131,7 @@ class Story extends BaseModel
     
     
     
-    removePart: (part, user, cb) =>
+    deletePart: (part, user, cb) =>
         if @isAuthor user
             index = @parts.indexOf part
             if index != -1

@@ -68,8 +68,7 @@ class StoryEditView
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
         val = $('.title-editor input').val()
-        $.post "/stories/#{story._id}/saveTitle", { title: val }, (response) =>
-            console.log response
+        $.post "/stories/#{story._id}", { title: val }, (response) =>
             if response.success
                 editable.click () =>
                     @editTitle()
@@ -310,8 +309,6 @@ class StoryEditView
 
 
 
-                
-
 
     editVideoPart: (editable) =>        
         part = editable.data 'part'
@@ -347,24 +344,34 @@ class StoryEditView
     
     savePart: (editable, fnUpdatePart, fnAfterSave) =>
         fnUpdatePart()
-        part = editable.data 'part'
-        
-        postData = {}
-        if part.isNew
-            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
-            delete part.isNew
-            delete part._id
-        postData.part = part
-        
-        $.post "/stories/#{@story._id}/savePart", postData, (response) =>
+
+        part = editable.data 'part'  
+        postData = {}      
+        SocialTypist.Utils.extend postData, part
+
+        onComplete = (response) =>
             if response.success
-                if response.partId
-                    part._id = response.partId
                 editable.click () =>
                     @editPart editable
-                editable.removeClass 'selected'      
+                editable.removeClass 'selected'
                 fnAfterSave()
 
+        #Update existing part PUT /stories/#{@story._id}/parts/#{part._id}
+        if not part.isNew
+            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
+            $.put "/stories/#{@story._id}/parts/#{part._id}", postData, onComplete
+                
+                    
+        #Create a new part POST /stories/#{@story._id}/parts
+        else
+            delete postData._id
+            delete postData.isNew
+            $.post "/stories/#{@story._id}/parts", postData, (response) =>
+                if response.success
+                    part._id = response._id
+                    delete part.isNew
+                onComplete response
+                    
         return false
 
 
@@ -383,10 +390,8 @@ class StoryEditView
         part = editable.data 'part'
 
         if not part.isNew
-            $.post "/stories/#{@story._id}/removePart", { part: part._id }, (response) =>
-                console.log 'ereddd'
+            $.delete_ "/stories/#{@story._id}/parts/#{part._id}", {}, (response) =>
                 if response.success
-                    console.log 'ere'
                     editable.remove()
         else
             editable.remove()

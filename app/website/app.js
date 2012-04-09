@@ -76,27 +76,35 @@
   }));
 
   app.get('/stories/create', findHandler('stories', function(c) {
+    return c.createForm;
+  }));
+
+  app.post('/stories', findHandler('stories', function(c) {
     return c.create;
   }));
 
-  app.post('/stories/create', findHandler('stories', function(c) {
-    return c.create_post;
+  app.get('/stories/:storyid', findHandler('stories', function(c) {
+    return c.show;
   }));
 
   app.get('/stories/:storyid/edit', findHandler('stories', function(c) {
-    return c.edit;
+    return c.editForm;
   }));
 
-  app.post('/stories/:storyid/saveTitle', findHandler('stories', function(c) {
-    return c.saveTitle;
+  app.put('/stories/:storyid', findHandler('stories', function(c) {
+    return c.update;
   }));
 
-  app.post('/stories/:storyid/savePart', findHandler('stories', function(c) {
-    return c.savePart;
+  app.post('/stories/:storyid/parts', findHandler('stories', function(c) {
+    return c.createPart;
   }));
 
-  app.post('/stories/:storyid/removePart', findHandler('stories', function(c) {
-    return c.removePart;
+  app.put('/stories/:storyid/parts/:partid', findHandler('stories', function(c) {
+    return c.updatePart;
+  }));
+
+  app.del('/stories/:storyid/parts/:partid', findHandler('stories', function(c) {
+    return c.deletePart;
   }));
 
   app.post('/stories/:storyid/publish', findHandler('stories', function(c) {
@@ -105,10 +113,6 @@
 
   app.post('/stories/:storyid/upload', findHandler('stories', function(c) {
     return c.upload;
-  }));
-
-  app.get('/stories/:storyid', findHandler('stories', function(c) {
-    return c.display;
   }));
 
   app.use(function(err, req, res, next) {

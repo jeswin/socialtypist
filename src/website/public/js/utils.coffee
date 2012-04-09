@@ -13,3 +13,7 @@ this.SocialTypist.Utils.uniqueId = (length=16) ->
   id = ""
   id += Math.random().toString(36).substr(2) while id.length < length
   id.substr 0, length
+  
+this.SocialTypist.Utils.extend = (target, source) ->
+    for key, val of source
+        target[key] = val  

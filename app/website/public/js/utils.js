@@ -25,4 +25,14 @@
     return id.substr(0, length);
   };
 
+  this.SocialTypist.Utils.extend = function(target, source) {
+    var key, val, _results;
+    _results = [];
+    for (key in source) {
+      val = source[key];
+      _results.push(target[key] = val);
+    }
+    return _results;
+  };
+
 }).call(this);

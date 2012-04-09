@@ -124,10 +124,9 @@
         _this = this;
       editable = $('#story-editor .editable.title');
       val = $('.title-editor input').val();
-      return $.post("/stories/" + story._id + "/saveTitle", {
+      return $.post("/stories/" + story._id, {
         title: val
       }, function(response) {
-        console.log(response);
         if (response.success) {
           editable.click(function() {
             return _this.editTitle();
@@ -374,12 +373,22 @@
     };
 
     StoryEditView.prototype.savePart = function(editable, fnUpdatePart, fnAfterSave) {
-      var element, part, postData,
+      var element, onComplete, part, postData,
         _this = this;
       fnUpdatePart();
       part = editable.data('part');
       postData = {};
-      if (part.isNew) {
+      SocialTypist.Utils.extend(postData, part);
+      onComplete = function(response) {
+        if (response.success) {
+          editable.click(function() {
+            return _this.editPart(editable);
+          });
+          editable.removeClass('selected');
+          return fnAfterSave();
+        }
+      };
+      if (!part.isNew) {
         postData.previousParts = (function() {
           var _i, _len, _ref, _results;
           _ref = editable.prevAll();
@@ -392,20 +401,18 @@
           }
           return _results;
         })();
-        delete part.isNew;
-        delete part._id;
+        $.put("/stories/" + this.story._id + "/parts/" + part._id, postData, onComplete);
+      } else {
+        delete postData._id;
+        delete postData.isNew;
+        $.post("/stories/" + this.story._id + "/parts", postData, function(response) {
+          if (response.success) {
+            part._id = response._id;
+            delete part.isNew;
+          }
+          return onComplete(response);
+        });
       }
-      postData.part = part;
-      $.post("/stories/" + this.story._id + "/savePart", postData, function(response) {
-        if (response.success) {
-          if (response.partId) part._id = response.partId;
-          editable.click(function() {
-            return _this.editPart(editable);
-          });
-          editable.removeClass('selected');
-          return fnAfterSave();
-        }
-      });
       return false;
     };
 
@@ -425,14 +432,8 @@
         _this = this;
       part = editable.data('part');
       if (!part.isNew) {
-        return $.post("/stories/" + this.story._id + "/removePart", {
-          part: part._id
-        }, function(response) {
-          console.log('ereddd');
-          if (response.success) {
-            console.log('ere');
-            return editable.remove();
-          }
+        return $.delete_("/stories/" + this.story._id + "/parts/" + part._id, {}, function(response) {
+          if (response.success) return editable.remove();
         });
       } else {
         return editable.remove();
