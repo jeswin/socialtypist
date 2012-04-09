@@ -167,7 +167,7 @@
         var part, _i, _len;
         for (_i = 0, _len = parts.length; _i < _len; _i++) {
           part = parts[_i];
-          _this.html += part.html;
+          _this.html += part.getHtml();
         }
         return _this.save(user, cb);
       });

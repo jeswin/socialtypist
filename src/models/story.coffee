@@ -85,9 +85,11 @@ class Story extends BaseModel
               
         @html = markdown '#' + @title, true, allowedTags, allowedAttributes
 
-        @getParts (err, parts) =>                
-            for part in parts
-                @html += part.html
+        @getParts (err, parts) =>
+        
+            for part in parts                
+                @html += part.getHtml()
+                
             @save user, cb
   
   

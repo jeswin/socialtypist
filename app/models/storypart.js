@@ -35,13 +35,20 @@
       var r, res, videoId;
       if (this.type === "TEXT") {
         return this.toHtml(this.value);
-      } else if (this.type === "HEADER") {
-        if (this.size === "H1") this.toHtml("# " + this.value);
-        if (this.size === "H2") this.toHtml("## " + this.value);
-        if (this.size === "H3") this.toHtml("### " + this.value);
-        if (this.size === "H4") this.toHtml("#### " + this.value);
-        if (this.size === "H5") this.toHtml("##### " + this.value);
-        if (this.size === "H6") return this.toHtml("###### " + this.value);
+      } else if (this.type === "HEADING") {
+        if (this.size === "H1") {
+          return this.toHtml("# " + this.value);
+        } else if (this.size === "H2") {
+          return this.toHtml("## " + this.value);
+        } else if (this.size === "H3") {
+          return this.toHtml("### " + this.value);
+        } else if (this.size === "H4") {
+          return this.toHtml("#### " + this.value);
+        } else if (this.size === "H5") {
+          return this.toHtml("##### " + this.value);
+        } else if (this.size === "H6") {
+          return this.toHtml("###### " + this.value);
+        }
       } else if (this.type === "IMAGE") {
         return "<p class=\"media\"><img src=\"" + this.value + "\" alt=\"\" /></p>";
       } else if (this.type === "VIDEO") {

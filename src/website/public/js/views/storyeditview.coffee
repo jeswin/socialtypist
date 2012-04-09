@@ -38,9 +38,11 @@ class StoryEditView
         editable.html "
             <form class=\"title-editor\">
                 <input type=\"text\" class=\"span6\" /><br />
-                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>
+                <p class=\"left\">
+                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>
+                </p>
                 <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
 
@@ -68,7 +70,7 @@ class StoryEditView
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
         val = $('.title-editor input').val()
-        $.post "/stories/#{story._id}", { title: val }, (response) =>
+        $.put "/stories/#{story._id}", { title: val }, (response) =>
             if response.success
                 editable.click () =>
                     @editTitle()
@@ -89,7 +91,7 @@ class StoryEditView
 
     createParts: () =>
         @container.append '<ul id="part-editor" class="story"></ul>'
-        @container.append '<p class="add-section"><span class="plus">+</span><a class="small action" href="#">add new section</a></p>'
+        @container.append '<p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">add new section</a></p>'
         @container.find('.add-section a').click () =>
             @addSection 'end'
             return false 
@@ -157,7 +159,12 @@ class StoryEditView
 
     renderVideoPart: (editable) =>
         part = editable.data 'part'
-        editable.html @makeHtml part.value           
+        r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/
+        res = part.value.match(r)
+        if res 
+            videoId = res[1]              
+            embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></p>"
+            editable.html embed
 
             
         
@@ -358,14 +365,13 @@ class StoryEditView
 
         #Update existing part PUT /stories/#{@story._id}/parts/#{part._id}
         if not part.isNew
-            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
             $.put "/stories/#{@story._id}/parts/#{part._id}", postData, onComplete
-                
                     
         #Create a new part POST /stories/#{@story._id}/parts
         else
             delete postData._id
             delete postData.isNew
+            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
             $.post "/stories/#{@story._id}/parts", postData, (response) =>
                 if response.success
                     part._id = response._id

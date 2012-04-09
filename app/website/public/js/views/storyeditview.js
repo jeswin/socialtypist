@@ -97,7 +97,7 @@
       editable.unbind('click');
       editable.addClass('selected');
       val = editable.data('title');
-      editable.html("            <form class=\"title-editor\">                <input type=\"text\" class=\"span6\" /><br />                <p class=\"left\"><a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a></p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      editable.html("            <form class=\"title-editor\">                <input type=\"text\" class=\"span6\" /><br />                <p class=\"left\">                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>                </p>                <hr />                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
       editable.find('.title-editor input').val(val);
       editable.find('a.save').click(function() {
         _this.saveTitle();
@@ -124,7 +124,7 @@
         _this = this;
       editable = $('#story-editor .editable.title');
       val = $('.title-editor input').val();
-      return $.post("/stories/" + story._id, {
+      return $.put("/stories/" + story._id, {
         title: val
       }, function(response) {
         if (response.success) {
@@ -153,7 +153,7 @@
       var editable, part, _i, _len, _ref, _results,
         _this = this;
       this.container.append('<ul id="part-editor" class="story"></ul>');
-      this.container.append('<p class="add-section"><span class="plus">+</span><a class="small action" href="#">add new section</a></p>');
+      this.container.append('<p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">add new section</a></p>');
       this.container.find('.add-section a').click(function() {
         _this.addSection('end');
         return false;
@@ -227,9 +227,15 @@
     };
 
     StoryEditView.prototype.renderVideoPart = function(editable) {
-      var part;
+      var embed, part, r, res, videoId;
       part = editable.data('part');
-      return editable.html(this.makeHtml(part.value));
+      r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/;
+      res = part.value.match(r);
+      if (res) {
+        videoId = res[1];
+        embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></p>";
+        return editable.html(embed);
+      }
     };
 
     StoryEditView.prototype.editPart = function(editable) {
@@ -389,6 +395,10 @@
         }
       };
       if (!part.isNew) {
+        $.put("/stories/" + this.story._id + "/parts/" + part._id, postData, onComplete);
+      } else {
+        delete postData._id;
+        delete postData.isNew;
         postData.previousParts = (function() {
           var _i, _len, _ref, _results;
           _ref = editable.prevAll();
@@ -401,10 +411,6 @@
           }
           return _results;
         })();
-        $.put("/stories/" + this.story._id + "/parts/" + part._id, postData, onComplete);
-      } else {
-        delete postData._id;
-        delete postData.isNew;
         $.post("/stories/" + this.story._id + "/parts", postData, function(response) {
           if (response.success) {
             part._id = response._id;
