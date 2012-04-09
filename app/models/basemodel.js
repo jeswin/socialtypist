@@ -19,18 +19,20 @@
     }
 
     BaseModel.get = function(params, cb) {
-      var meta;
-      meta = BaseModel._meta;
-      return BaseModel._database.findOne(meta.collection, params, function(err, result) {
+      var meta,
+        _this = this;
+      meta = this._meta;
+      return this._database.findOne(meta.collection, params, function(err, result) {
         return cb(err, result ? new meta.type(result) : void 0);
       });
     };
 
     BaseModel.getById = function(id, cb) {
-      var meta;
-      meta = BaseModel._meta;
-      return BaseModel._database.findOne(meta.collection, {
-        '_id': BaseModel._database.ObjectId(id)
+      var meta,
+        _this = this;
+      meta = this._meta;
+      return this._database.findOne(meta.collection, {
+        '_id': this._database.ObjectId(id)
       }, function(err, result) {
         return cb(err, result ? new meta.type() : void 0);
       });
@@ -60,7 +62,7 @@
 
     return BaseModel;
 
-  }).call(this);
+  })();
 
   exports.BaseModel = BaseModel;
 

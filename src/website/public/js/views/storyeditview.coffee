@@ -1,14 +1,16 @@
 class StoryEditView
 
-    constructor: (@story, container) ->
-        @container = $(container)
+    constructor: (@story, @editor) ->    
+        @container = $(@editor.find('.story'))
         @initialize()
 
 
 
     initialize: () =>
         @showdown = new Showdown.converter()
-
+        @editor.find('.publish-button').click () =>
+            $.post "/stories/#{@story._id}/publish", () =>
+                window.location.href = "/stories/#{@story._id}"
     
     
     render: () =>
@@ -176,7 +178,7 @@ class StoryEditView
             return false
 
         editable.find('.delete').click () =>
-            @deletePart editable
+            @removePart editable
             return false
             
         editable.find('.insert').click () =>
@@ -195,8 +197,6 @@ class StoryEditView
                     <option value=\"H2\">H2</option>
                     <option value=\"H3\">H3</option>
                     <option value=\"H4\">H4</option>
-                    <option value=\"H5\">H5</option>
-                    <option value=\"H6\">H6</option>                    
                 </select>
                 <br />
                 <input type=\"text\" class=\"span6\" value=\"#{part.value ? ''}\" />
@@ -266,25 +266,50 @@ class StoryEditView
     editImagePart: (editable) =>        
         part = editable.data 'part'
         @createForm editable, "
-            <form>
-                Image url: <input type=\"text\" class=\"span5\" value=\"#{part.value ? ''}\" /> or <a href=\"#\" class=\"upload\">Upload file</a>
-                <p class=\"left\">
-                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
-                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                    
-                </p>
-                <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
-            </form>"
+            <div class=\"with-url\">
+                <form>
+                    Image url: <input type=\"text\" class=\"url span5\" value=\"#{part.value ? ''}\" /> or <a href=\"#\" class=\"upload\">Upload file</a>
+                    <p class=\"left\">
+                        <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                        <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                    
+                    </p>
+                    <hr />
+                    <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                </form>
+            </div>
+            <div class=\"with-upload\" style=\"display:none\">
+                <form class=\"upload-form\" name=\"form\" action=\"upload\" method=\"POST\" target=\"upload-frame\" enctype=\"multipart/form-data\" >
+                    <input type=\"file\" name=\"file\" /><br />
+                    <a href=\"#\" class=\"btn upload\">Upload</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <iframe id=\"upload-frame\" name=\"upload-frame\" src=\"\" style=\"display:none;height:0;width:0\"></iframe>
+                </form>
+            </div>"
+            
+        editable.find('.with-url .upload').click () =>
+            editable.find('.with-url').hide()
+            editable.find('.with-upload').show()
+            editable.find('.with-upload .upload').click () =>
+                frame = editable.find('#upload-frame')
+                frame.unbind 'load'
+                frame.load () =>
+                    url = $(frame[0].contentWindow.document).text()
+                    editable.find('input.url').val url
+                    @savePart editable, fnUpdatePart, fnAfterSave
+                editable.find('.upload-form').submit()
+                
 
         fnUpdatePart = () =>
-            src = editable.find('input').val()
+            src = editable.find('input.url').val()
             part.value = src
 
         fnAfterSave = () =>
-            editable.html @makeHtml "<div class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></div>"
+            editable.html @makeHtml "<p class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></p>"
 
         editable.find('.save').click () =>
             @savePart editable, fnUpdatePart, fnAfterSave
+
+
+
                 
 
 
@@ -303,6 +328,7 @@ class StoryEditView
             
         fnUpdatePart = () =>
             url = editable.find('input').val()
+            part.source = "youtube" #The only one we support for now.
             part.value = url
             
         fnAfterSave = () =>
@@ -310,7 +336,7 @@ class StoryEditView
             res = part.value.match(r)
             if res 
                 videoId = res[1]              
-                embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
+                embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></p>"
                 editable.html embed
             
             
@@ -345,17 +371,25 @@ class StoryEditView
        
     cancelPartEdit: (editable) =>
         part = editable.data 'part'
-        editable.removeClass 'selected'
-        @renderPartContent editable
+        if not part.isNew
+            editable.removeClass 'selected'
+            @renderPartContent editable
+        else
+            editable.remove()
+        
     
     
-    
-    deletePart: (editable) =>
-        editable.click () =>
-            @editPart editable
+    removePart: (editable) =>
         part = editable.data 'part'
-        #do delete on server.
-        editable.remove()
+
+        if not part.isNew
+            $.post "/stories/#{@story._id}/removePart", { part: part._id }, (response) =>
+                console.log 'ereddd'
+                if response.success
+                    console.log 'ere'
+                    editable.remove()
+        else
+            editable.remove()
 
 
     

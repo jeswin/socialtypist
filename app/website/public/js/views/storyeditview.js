@@ -7,8 +7,9 @@
 
     StoryEditView.name = 'StoryEditView';
 
-    function StoryEditView(story, container) {
+    function StoryEditView(story, editor) {
       this.story = story;
+      this.editor = editor;
       this.getHeadingPrefix = __bind(this.getHeadingPrefix, this);
 
       this.createForm = __bind(this.createForm, this);
@@ -17,7 +18,7 @@
 
       this.addSection = __bind(this.addSection, this);
 
-      this.deletePart = __bind(this.deletePart, this);
+      this.removePart = __bind(this.removePart, this);
 
       this.cancelPartEdit = __bind(this.cancelPartEdit, this);
 
@@ -59,12 +60,18 @@
 
       this.initialize = __bind(this.initialize, this);
 
-      this.container = $(container);
+      this.container = $(this.editor.find('.story'));
       this.initialize();
     }
 
     StoryEditView.prototype.initialize = function() {
-      return this.showdown = new Showdown.converter();
+      var _this = this;
+      this.showdown = new Showdown.converter();
+      return this.editor.find('.publish-button').click(function() {
+        return $.post("/stories/" + _this.story._id + "/publish", function() {
+          return window.location.href = "/stories/" + _this.story._id;
+        });
+      });
     };
 
     StoryEditView.prototype.render = function() {
@@ -250,7 +257,7 @@
         return false;
       });
       editable.find('.delete').click(function() {
-        _this.deletePart(editable);
+        _this.removePart(editable);
         return false;
       });
       editable.find('.insert').click(function() {
@@ -264,7 +271,7 @@
       var fnAfterSave, fnUpdatePart, part, save, _ref, _ref1,
         _this = this;
       part = editable.data('part');
-      this.createForm(editable, "            <form>                <select class=\"size span2\">                    <option value=\"H2\">H2</option>                    <option value=\"H3\">H3</option>                    <option value=\"H4\">H4</option>                    <option value=\"H5\">H5</option>                    <option value=\"H6\">H6</option>                                    </select>                <br />                <input type=\"text\" class=\"span6\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <form>                <select class=\"size span2\">                    <option value=\"H2\">H2</option>                    <option value=\"H3\">H3</option>                    <option value=\"H4\">H4</option>                </select>                <br />                <input type=\"text\" class=\"span6\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
       editable.find('select').focus();
       editable.find('.size').val((_ref1 = part.size) != null ? _ref1 : 'H2');
       fnUpdatePart = function() {
@@ -310,14 +317,30 @@
       var fnAfterSave, fnUpdatePart, part, _ref,
         _this = this;
       part = editable.data('part');
-      this.createForm(editable, "            <form>                Image url: <input type=\"text\" class=\"span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" /> or <a href=\"#\" class=\"upload\">Upload file</a>                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                                    </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <div class=\"with-url\">                <form>                    Image url: <input type=\"text\" class=\"url span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" /> or <a href=\"#\" class=\"upload\">Upload file</a>                    <p class=\"left\">                        <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                        <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                                        </p>                    <hr />                    <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>                </form>            </div>            <div class=\"with-upload\" style=\"display:none\">                <form class=\"upload-form\" name=\"form\" action=\"upload\" method=\"POST\" target=\"upload-frame\" enctype=\"multipart/form-data\" >                    <input type=\"file\" name=\"file\" /><br />                    <a href=\"#\" class=\"btn upload\">Upload</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <iframe id=\"upload-frame\" name=\"upload-frame\" src=\"\" style=\"display:none;height:0;width:0\"></iframe>                </form>            </div>");
+      editable.find('.with-url .upload').click(function() {
+        editable.find('.with-url').hide();
+        editable.find('.with-upload').show();
+        return editable.find('.with-upload .upload').click(function() {
+          var frame;
+          frame = editable.find('#upload-frame');
+          frame.unbind('load');
+          frame.load(function() {
+            var url;
+            url = $(frame[0].contentWindow.document).text();
+            editable.find('input.url').val(url);
+            return _this.savePart(editable, fnUpdatePart, fnAfterSave);
+          });
+          return editable.find('.upload-form').submit();
+        });
+      });
       fnUpdatePart = function() {
         var src;
-        src = editable.find('input').val();
+        src = editable.find('input.url').val();
         return part.value = src;
       };
       fnAfterSave = function() {
-        return editable.html(_this.makeHtml("<div class=\"media\"><img src=\"" + part.value + "\" alt=\"\" /></div>"));
+        return editable.html(_this.makeHtml("<p class=\"media\"><img src=\"" + part.value + "\" alt=\"\" /></p>"));
       };
       return editable.find('.save').click(function() {
         return _this.savePart(editable, fnUpdatePart, fnAfterSave);
@@ -332,6 +355,7 @@
       fnUpdatePart = function() {
         var url;
         url = editable.find('input').val();
+        part.source = "youtube";
         return part.value = url;
       };
       fnAfterSave = function() {
@@ -340,7 +364,7 @@
         res = part.value.match(r);
         if (res) {
           videoId = res[1];
-          embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></div>";
+          embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></p>";
           return editable.html(embed);
         }
       };
@@ -388,18 +412,31 @@
     StoryEditView.prototype.cancelPartEdit = function(editable) {
       var part;
       part = editable.data('part');
-      editable.removeClass('selected');
-      return this.renderPartContent(editable);
+      if (!part.isNew) {
+        editable.removeClass('selected');
+        return this.renderPartContent(editable);
+      } else {
+        return editable.remove();
+      }
     };
 
-    StoryEditView.prototype.deletePart = function(editable) {
+    StoryEditView.prototype.removePart = function(editable) {
       var part,
         _this = this;
-      editable.click(function() {
-        return _this.editPart(editable);
-      });
       part = editable.data('part');
-      return editable.remove();
+      if (!part.isNew) {
+        return $.post("/stories/" + this.story._id + "/removePart", {
+          part: part._id
+        }, function(response) {
+          console.log('ereddd');
+          if (response.success) {
+            console.log('ere');
+            return editable.remove();
+          }
+        });
+      } else {
+        return editable.remove();
+      }
     };
 
     StoryEditView.prototype.addSection = function(previous) {

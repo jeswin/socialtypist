@@ -92,7 +92,23 @@
   }));
 
   app.post('/stories/:storyid/savePart', findHandler('stories', function(c) {
-    return c.updatePart;
+    return c.savePart;
+  }));
+
+  app.post('/stories/:storyid/removePart', findHandler('stories', function(c) {
+    return c.removePart;
+  }));
+
+  app.post('/stories/:storyid/publish', findHandler('stories', function(c) {
+    return c.publish;
+  }));
+
+  app.post('/stories/:storyid/upload', findHandler('stories', function(c) {
+    return c.upload;
+  }));
+
+  app.get('/stories/:storyid', findHandler('stories', function(c) {
+    return c.display;
   }));
 
   app.use(function(err, req, res, next) {

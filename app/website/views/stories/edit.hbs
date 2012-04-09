@@ -15,17 +15,25 @@
         {{/if}}
         | <a class="write selected" href="#">Write a story</a>
     </p>
-    <div class="content-area row">
+    <div class="content-area row" id="story-editor">
         <div class="content-pane span8">
-            <div id="story-editor" class="story"></div>
+        <ul class="nav nav-pills">
+            <li>
+                <a href="#">Story Settings</a>
+            </li>
+            <li class="active">
+                <a href="#">Content</a>
+            </li>
+            <li>
+                <a href="#">Messages</a>
+            </li>
+        </ul>
+        <hr />
+        <div class="story"></div>
         </div>
         <div class="content-pane span4">
-            <p>
-                <a href="#" class="action small settings">Story settings</a> | <a href="#" class="action small history">History</a>
-            </p>
-            <hr />
             <p class="form">
-                <a href="#" class="btn btn-large">Publish Story</a>
+                <a href="#" class="publish-button btn btn-large">Publish Story</a>
             </p>
         </div>
         <div class="clear"></div>

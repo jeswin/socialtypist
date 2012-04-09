@@ -46,7 +46,12 @@ app.get '/stories/create', findHandler('stories', (c) -> c.create)
 app.post '/stories/create', findHandler('stories', (c) -> c.create_post)
 app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.edit)
 app.post '/stories/:storyid/saveTitle', findHandler('stories', (c) -> c.saveTitle)
-app.post '/stories/:storyid/savePart', findHandler('stories', (c) -> c.updatePart)
+app.post '/stories/:storyid/savePart', findHandler('stories', (c) -> c.savePart)
+app.post '/stories/:storyid/removePart', findHandler('stories', (c) -> c.removePart)
+app.post '/stories/:storyid/publish', findHandler('stories', (c) -> c.publish)
+app.post '/stories/:storyid/upload', findHandler('stories', (c) -> c.upload)
+app.get '/stories/:storyid', findHandler('stories', (c) -> c.display)
+
 
 # handle all app errors - 500
 app.use (err, req, res, next) ->

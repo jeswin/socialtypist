@@ -1,0 +1,21 @@
+<div class="container">
+    <h1><a href="/">Social Typist</a></h1>
+    <p class="main-links">
+        <a class="read" href="#">Read stories</a>
+        {{#if loginStatus.loggedIn}}
+        | <a class="mystories" href="#">Your stories</a>
+        {{/if}}
+        | <a class="write selected" href="#">Write a story</a>
+    </p>
+    <div class="content-area row">
+        <div class="content-pane span8">
+            <div class="story">
+                {{{content}}}
+            </div>
+        </div>
+        <div class="content-pane span4">
+            <p>There will be some content here....</p>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>

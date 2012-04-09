@@ -2,6 +2,7 @@ controller = require('./controller')
 everyauth = require 'everyauth'
 dbconf = require '../../models/dbconf'
 models = new (require '../../models').Models(dbconf.default)
+fs = require 'fs'
 
 class StoriesController extends controller.Controller
 
@@ -16,7 +17,13 @@ class StoriesController extends controller.Controller
     index: (req, res, next) =>
         res.render 'stories/index.hbs', { loginStatus: @getLoginStatus(req) }
         
-        
+    
+    
+    display: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>    
+            res.render 'stories/display.hbs', { loginStatus: @getLoginStatus(req), content: story.html }
+    
+    
             
     create: (req, res, next) =>
         res.render 'stories/create.hbs', { loginStatus: @getLoginStatus(req) }
@@ -52,22 +59,53 @@ class StoriesController extends controller.Controller
         
         
     
-    updatePart: (req, res, next) =>
+    savePart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             if req.body.part._id?        
-                story.updatePart new models.StoryPart(req.body.part), req.session.user._id, () =>
+                story.updatePart @getPartFromBody(req.body.part), req.session.user._id, () =>
                     res.contentType 'json'
                     res.send { success: true }   
             else
-                part = new models.StoryPart(req.body.part)
+                part = @getPartFromBody(req.body.part)
                 story.addPart part, req.body.previousParts, req.session.user._id, () =>
                     res.contentType 'json'
                     res.send { success: true, partId: part._id }
+                   
+                    
+
+    removePart: (req, res, next) =>                    
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.removePart req.body.part, req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
                 
+                
+
+    publish: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.publish req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+          
+        
     
+    upload: (req, res, next) =>
+    	if (req.files)    	    
+            targetPath = "./public/images/content/#{req.params.storyid}_#{req.files.file.name}"
+            
+            fs.rename req.files.file.path, targetPath, (err) =>
+                res.send "/public/images/content/#{req.params.storyid}_#{req.files.file.name}"
+                           
+        
+          
+    getPartFromBody: (bodyPart) =>
+        new models.StoryPart bodyPart
+        
+          
           
     item: (req, res, next) =>
         models.Story.get req.params.id, (story) =>
+            
             
     
 exports.StoriesController = StoriesController

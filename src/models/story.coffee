@@ -1,5 +1,7 @@
 async = require 'async'
 BaseModel = require('./basemodel').BaseModel
+markdown = require("node-markdown").Markdown
+sanitize = require("../common/mdsanitizer").sanitize
 
 class Story extends BaseModel
 
@@ -12,17 +14,14 @@ class Story extends BaseModel
         }
     }
 
-    ###
-        Gets the story with the specified id (string).
-    ###
+
+
     @getById: (id, cb) =>
         Story._database.findOne 'stories', { '_id': @_database.ObjectId(id) }, (err, result) =>
             cb null, if result then new Story(result)
 
 
-    ###
-        Gets all the parts in the story.
-    ###
+
     getParts: (cb) =>
         Story._database.find 'storyparts', { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, parts) =>
             parts.toArray (err, items) =>
@@ -33,17 +32,24 @@ class Story extends BaseModel
                     results.push part                    
                 cb null, results
 
-                    
-    ###
-        Saves a story.
-    ###
+
+
     save: (user, cb) =>
+        allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
+        allowedAttributes = {
+            'img': 'src|width|height|alt',
+            'a':   'href',
+            '*':   'title'
+        }
+    
+        @timestamp = new Date().getTime()
         if not @_id
             @createdBy = user
             @owners = [user]
             @authors = []
             @parts = []
             @published = false
+            @title = sanitize @title, allowedTags, allowedAttributes
             super () =>
                 async.series [
                         ((cb) =>
@@ -62,11 +68,28 @@ class Story extends BaseModel
         else
             #Only owners may save
             if @isOwner user
+                @title = sanitize @title, allowedTags, allowedAttributes
                 super cb
             else
                 throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
             
+            
+    publish: (user, cb) =>
+        allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
+        allowedAttributes = {
+            'img': 'src|width|height|alt',
+            'a':   'href',
+            '*':   'title'
+        }
+              
+        @html = markdown '#' + @title, true, allowedTags, allowedAttributes
+
+        @getParts (err, parts) =>                
+            for part in parts
+                @html += part.html
+            @save user, cb
+  
   
     ###
         Adds a new part to the story.
@@ -78,6 +101,7 @@ class Story extends BaseModel
         if @isAuthor user
             part.author = user
             part.story = @_id.toString()
+            part.timestamp = new Date().getTime()
             part.save () =>
                         
                 insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.
@@ -100,6 +124,7 @@ class Story extends BaseModel
     
     updatePart: (part, user, cb) =>
         if @isAuthor user
+            part.timestamp = new Date().getTime()
             part.save cb 
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
@@ -108,21 +133,21 @@ class Story extends BaseModel
     
     removePart: (part, user, cb) =>
         if @isAuthor user
-            index = @parts.indexOf part._id.toString()
+            index = @parts.indexOf part
             if index != -1
                 @parts.splice index, 1
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
         
-  
-       
+    
+          
     addAuthor: (author, user, cb) =>
         if @isOwner user
             #Confirm is not already an owner.
             if @authors.indexOf author == -1
                 @authors.push author
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
@@ -133,7 +158,7 @@ class Story extends BaseModel
             #See if author is among authors
             if @authors.indexOf author > -1
                 @authors = (u for u in @authors when u != author)
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
@@ -144,7 +169,7 @@ class Story extends BaseModel
             #Confirm is not already an owner.
             if @owners.indexOf owner == -1
                 @owners.push owner
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
@@ -155,7 +180,7 @@ class Story extends BaseModel
             #See if owner is among owners.
             if @owners.indexOf owner > -1
                 @owners = (u for u in @owners when u != owner)
-                @save cb
+                @save user, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
             
@@ -168,6 +193,8 @@ class Story extends BaseModel
         
     isOwner: (user) =>
         @owners.indexOf user > -1
+        
+        
     
 
 exports.Story = Story
