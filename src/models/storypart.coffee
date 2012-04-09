@@ -1,4 +1,6 @@
 BaseModel = require('./basemodel').BaseModel
+markdown = require("node-markdown").Markdown
+sanitize = require("../common/mdsanitizer").sanitize
 
 class StoryPart extends BaseModel
 
@@ -6,29 +8,57 @@ class StoryPart extends BaseModel
         type: StoryPart,
         collection: 'storyparts'
     }
-
-
-    getValue: () =>
-
-        if @type is "HEADER"
-            if @value.level is "H1"
-                return "# #{@value.text}"
-            if @value.level is "H2"
-                return "## #{@value.text}"
-            if @value.level is "H3"
-                return "### #{@value.text}"
-            if @value.level is "H4"
-                return "#### #{@value.text}"
-            if @value.level is "H5"
-                return "##### #{@value.text}"
-            if @value.level is "H6"
-                return "###### #{@value.text}"
-                
-        if @type is "IMAGE"
-            return "![#{@value.alt}] (#{@value.link})"
-                    
-        if @type is "RAW"
-            return @value
+    
+    getHtml: () =>
+        if @type is "TEXT"
+            @toHtml @value
+        
+        else if @type is "HEADER"
+            if @size is "H1"
+                @toHtml "# #{@value}"
+            if @size is "H2"
+                @toHtml "## #{@value}"
+            if @size is "H3"
+                @toHtml "### #{@value}"
+            if @size is "H4"
+                @toHtml "#### #{@value}"
+            if @size is "H5"
+                @toHtml "##### #{@value}"
+            if @size is "H6"
+                @toHtml "###### #{@value}"
                         
+        else if @type is "IMAGE"
+            "<p class=\"media\"><img src=\"#{@value}\" alt=\"\" /></p>"
+        
+        else if @type is "VIDEO"
+            r = /https?:\/\/www\.youtube\.com\/watch\?v\=(\w+)/
+            res = @value.match(r)
+            if res 
+                videoId = res[1]              
+                "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></p>"
+
+    
+    save: (cb) =>    
+        allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
+        allowedAttributes = {
+            'img': 'src|width|height|alt',
+            'a':   'href',
+            '*':   'title'
+        }
+        @value = sanitize @value, allowedTags, allowedAttributes
+        @html = @getHtml()
+        super cb
+
+    
+    
+    toHtml: (input) =>
+        allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
+        allowedAttributes = {
+            'img': 'src|width|height|alt',
+            'a':   'href',
+            '*':   'title'
+        }
+        markdown input, true, allowedTags, allowedAttributes
+
 
 exports.StoryPart = StoryPart

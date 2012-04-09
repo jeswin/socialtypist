@@ -1,14 +1,16 @@
 class StoryEditView
 
-    constructor: (@story, container) ->
-        @container = $(container)
+    constructor: (@story, @editor) ->    
+        @container = $(@editor.find('.story'))
         @initialize()
 
 
 
     initialize: () =>
         @showdown = new Showdown.converter()
-
+        @editor.find('.publish-button').click () =>
+            $.post "/stories/#{@story._id}/publish", () =>
+                window.location.href = "/stories/#{@story._id}"
     
     
     render: () =>
@@ -66,8 +68,7 @@ class StoryEditView
     saveTitle: () =>
         editable = $('#story-editor .editable.title')
         val = $('.title-editor input').val()
-        $.post "/stories/#{story._id}/saveTitle", { title: val }, (response) =>
-            console.log response
+        $.post "/stories/#{story._id}", { title: val }, (response) =>
             if response.success
                 editable.click () =>
                     @editTitle()
@@ -176,7 +177,7 @@ class StoryEditView
             return false
 
         editable.find('.delete').click () =>
-            @deletePart editable
+            @removePart editable
             return false
             
         editable.find('.insert').click () =>
@@ -195,17 +196,15 @@ class StoryEditView
                     <option value=\"H2\">H2</option>
                     <option value=\"H3\">H3</option>
                     <option value=\"H4\">H4</option>
-                    <option value=\"H5\">H5</option>
-                    <option value=\"H6\">H6</option>                    
                 </select>
                 <br />
                 <input type=\"text\" class=\"span6\" value=\"#{part.value ? ''}\" />
                 <p class=\"left\">
-                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
-                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>
+                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>
                 </p>
                 <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
         
         editable.find('select').focus()
@@ -220,7 +219,7 @@ class StoryEditView
             editable.html @makeHtml @getHeadingPrefix(part.size) + part.value
         
         save = () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
         editable.find('.save').click save
                                 
@@ -245,11 +244,11 @@ class StoryEditView
             <form>
                 <textarea rows=\"#{rows}\">#{part.value ? ''}</textarea>
                 <p class=\"left\">
-                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
-                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                
+                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>
                 </p>
                 <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
 
         fnUpdatePart = () =>
@@ -259,33 +258,56 @@ class StoryEditView
             editable.html @makeHtml part.value
 
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
             
 
     editImagePart: (editable) =>        
         part = editable.data 'part'
         @createForm editable, "
-            <form>
-                Image url: <input type=\"text\" class=\"span5\" value=\"#{part.value ? ''}\" /> or <a href=\"#\" class=\"upload\">Upload file</a>
-                <p class=\"left\">
-                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
-                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                    
-                </p>
-                <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
-            </form>"
+            <div class=\"with-url\">
+                <form>
+                    Image url: <input type=\"text\" class=\"url span5\" value=\"#{part.value ? ''}\" /> or <a href=\"#\" class=\"upload\">Upload file</a>
+                    <p class=\"left\">
+                        <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>
+                        <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>
+                    </p>
+                    <hr />
+                    <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                </form>
+            </div>
+            <div class=\"with-upload\" style=\"display:none\">
+                <form class=\"upload-form\" name=\"form\" action=\"upload\" method=\"POST\" target=\"upload-frame\" enctype=\"multipart/form-data\" >
+                    <input type=\"file\" name=\"file\" /><br />
+                    <a href=\"#\" class=\"btn upload\">Upload</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <iframe id=\"upload-frame\" name=\"upload-frame\" src=\"\" style=\"display:none;height:0;width:0\"></iframe>
+                </form>
+            </div>"
+            
+        editable.find('.with-url .upload').click () =>
+            editable.find('.with-url').hide()
+            editable.find('.with-upload').show()
+            editable.find('.with-upload .upload').click () =>
+                frame = editable.find('#upload-frame')
+                frame.unbind 'load'
+                frame.load () =>
+                    url = $(frame[0].contentWindow.document).text()
+                    editable.find('input.url').val url
+                    @savePart editable, fnUpdatePart, fnAfterSave
+                editable.find('.upload-form').submit()
+                
 
         fnUpdatePart = () =>
-            src = editable.find('input').val()
+            src = editable.find('input.url').val()
             part.value = src
 
         fnAfterSave = () =>
-            editable.html @makeHtml "<div class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></div>"
+            editable.html @makeHtml "<p class=\"media\"><img src=\"#{part.value}\" alt=\"\" /></p>"
 
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
-                
+            @savePart editable, fnUpdatePart, fnAfterSave
+
+
 
 
     editVideoPart: (editable) =>        
@@ -294,15 +316,16 @@ class StoryEditView
             <form>
                 YouTube url: <input type=\"text\" class=\"span5\" value=\"#{part.value ? ''}\" />
                 <p class=\"left\">
-                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>
-                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>
+                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>
+                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>
                 </p>
                 <hr />
-                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>
+                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>
             </form>"
             
         fnUpdatePart = () =>
             url = editable.find('input').val()
+            part.source = "youtube" #The only one we support for now.
             part.value = url
             
         fnAfterSave = () =>
@@ -310,42 +333,68 @@ class StoryEditView
             res = part.value.match(r)
             if res 
                 videoId = res[1]              
-                embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></div>"
+                embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/#{videoId}\" frameborder=\"0\" allowfullscreen></iframe></p>"
                 editable.html embed
             
             
         editable.find('.save').click () =>
-            @updatePart editable, fnUpdatePart, fnAfterSave
+            @savePart editable, fnUpdatePart, fnAfterSave
                 
                 
     
-    updatePart: (editable, fnUpdatePart, fnAfterSave) =>
+    savePart: (editable, fnUpdatePart, fnAfterSave) =>
         fnUpdatePart()
-        part = editable.data 'part'
-        $.post "/stories/#{@story._id}/updatePart", { part: part }, (response) =>
+
+        part = editable.data 'part'  
+        postData = {}      
+        SocialTypist.Utils.extend postData, part
+
+        onComplete = (response) =>
             if response.success
                 editable.click () =>
                     @editPart editable
-                editable.removeClass 'selected'                
+                editable.removeClass 'selected'
                 fnAfterSave()
 
+        #Update existing part PUT /stories/#{@story._id}/parts/#{part._id}
+        if not part.isNew
+            postData.previousParts = ($(element).data('part')._id for element in editable.prevAll() when not $(element).data('part').isNew)
+            $.put "/stories/#{@story._id}/parts/#{part._id}", postData, onComplete
+                
+                    
+        #Create a new part POST /stories/#{@story._id}/parts
+        else
+            delete postData._id
+            delete postData.isNew
+            $.post "/stories/#{@story._id}/parts", postData, (response) =>
+                if response.success
+                    part._id = response._id
+                    delete part.isNew
+                onComplete response
+                    
         return false
 
 
        
     cancelPartEdit: (editable) =>
         part = editable.data 'part'
-        editable.removeClass 'selected'
-        @renderPartContent editable
+        if not part.isNew
+            editable.removeClass 'selected'
+            @renderPartContent editable
+        else
+            editable.remove()
+        
     
     
-    
-    deletePart: (editable) =>
-        editable.click () =>
-            @editPart editable
+    removePart: (editable) =>
         part = editable.data 'part'
-        #do delete on server.
-        editable.remove()
+
+        if not part.isNew
+            $.delete_ "/stories/#{@story._id}/parts/#{part._id}", {}, (response) =>
+                if response.success
+                    editable.remove()
+        else
+            editable.remove()
 
 
     
@@ -359,19 +408,18 @@ class StoryEditView
             return
     
         content = "
-            <li class=\"unsaved form\">
-                <select class=\"part-type span2\">
-                    <option value=\"HEADING\">Heading</option>
-                    <option value=\"TEXT\" selected=\"selected\">Text</option>
-                    <option value=\"IMAGE\">Image</option>
-                    <option value=\"VIDEO\">Video</option>
-                </select>
+            <li class=\"unsaved form\" style=\"padding-left: 24px;\">
+                <ul class=\"action-list\">
+                    <li><i class=\"icon-align-justify\"></i><a href=\"#\" class=\"text\">Text content</a></li>
+                    <li><i class=\"icon-font\"></i><a href=\"#\" class=\"heading\">Heading</a></li>
+                    <li><i class=\"icon-picture\"></i><a href=\"#\" class=\"image\">Image</a></li>
+                    <li><i class=\"icon-facetime-video\"></i><a href=\"#\" class=\"video\">Video</a></li>
+                </ul>
+                <div class=\"clear\"></div>
                 <p>
-                    <a href=\"#\" class=\"btn add\">Add</a>
-                    <a href=\"#\" class=\"small action cancel\">cancel</a>
+                    <i class=\"icon-remove\"></i><a style=\"font-size: 12px\" href=\"#\" class=\"cancel\">cancel</a>
                 </p>
-            </li>
-        "
+            </li>"
         
         if previous == 'start'
             $('#part-editor').prepend content
@@ -385,10 +433,11 @@ class StoryEditView
             
         added.find('select').focus()
     
-        addSection = () =>
+        addSection = (partType) =>
             part = { 
-                type: added.find('.part-type').val(), 
+                type: partType,
                 _id: SocialTypist.Utils.uniqueId(),
+                isNew: true,
                 value: ''
             }
             editable = @createPartContainer part, added.prev()
@@ -396,17 +445,22 @@ class StoryEditView
             editable.data 'part', part 
             @editPart editable
             
-        added.find('.add').click () =>
-            addSection()
+        added.find('.text').click () =>
+            addSection 'TEXT'
             return false
-            
-        
-        #Add also if the user presses enter while on the select box.
-        added.find('select').keypress (e) =>
-            if e.which == 13
-                addSection()
-            
-            
+
+        added.find('.heading').click () =>
+            addSection 'HEADING'
+            return false
+
+        added.find('.image').click () =>
+            addSection 'IMAGE'
+            return false
+
+        added.find('.video').click () =>
+            addSection 'VIDEO'
+            return false
+           
         added.find('.cancel').click () =>
             added.remove()
             return false

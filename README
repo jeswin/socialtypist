@@ -1,1 +1,18 @@
-README
+
+
+## Dependencies
+
+### via NPM
+- express
+- mongodb
+- underscore
+- hbs
+- coffee-script
+- async
+- node-markdown
+- validator
+- htmlparser* 
+- everyauth*
+- handlebars*
+
+* Next version might start using this.

@@ -45,6 +45,9 @@ class Client
         
 
     logoutLink: () =>
+        $.get '/removeSession', () =>
+            window.location.reload()
+        ###
         @FB.getLoginStatus (response) =>
             if response.status == 'connected'
                 $.get '/removeSession', () =>
@@ -54,7 +57,7 @@ class Client
                 $.get '/removeSession', () =>
                     window.location.href = "/"
             return false
-
+        ###
     
         
 this.SocialTypist.Client = Client

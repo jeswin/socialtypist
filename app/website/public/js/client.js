@@ -72,20 +72,21 @@
 
     Client.prototype.logoutLink = function() {
       var _this = this;
-      return this.FB.getLoginStatus(function(response) {
-        if (response.status === 'connected') {
-          $.get('/removeSession', function() {
-            return _this.FB.logout(function() {
-              return window.location.href = "/";
-            });
-          });
-        } else {
-          $.get('/removeSession', function() {
-            return window.location.href = "/";
-          });
-        }
-        return false;
+      return $.get('/removeSession', function() {
+        return window.location.reload();
       });
+      /*
+              @FB.getLoginStatus (response) =>
+                  if response.status == 'connected'
+                      $.get '/removeSession', () =>
+                          @FB.logout () =>
+                              window.location.href = "/"
+                  else
+                      $.get '/removeSession', () =>
+                          window.location.href = "/"
+                  return false
+      */
+
     };
 
     return Client;

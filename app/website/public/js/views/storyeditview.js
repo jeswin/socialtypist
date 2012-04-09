@@ -7,8 +7,9 @@
 
     StoryEditView.name = 'StoryEditView';
 
-    function StoryEditView(story, container) {
+    function StoryEditView(story, editor) {
       this.story = story;
+      this.editor = editor;
       this.getHeadingPrefix = __bind(this.getHeadingPrefix, this);
 
       this.createForm = __bind(this.createForm, this);
@@ -17,11 +18,11 @@
 
       this.addSection = __bind(this.addSection, this);
 
-      this.deletePart = __bind(this.deletePart, this);
+      this.removePart = __bind(this.removePart, this);
 
       this.cancelPartEdit = __bind(this.cancelPartEdit, this);
 
-      this.updatePart = __bind(this.updatePart, this);
+      this.savePart = __bind(this.savePart, this);
 
       this.editVideoPart = __bind(this.editVideoPart, this);
 
@@ -59,12 +60,18 @@
 
       this.initialize = __bind(this.initialize, this);
 
-      this.container = $(container);
+      this.container = $(this.editor.find('.story'));
       this.initialize();
     }
 
     StoryEditView.prototype.initialize = function() {
-      return this.showdown = new Showdown.converter();
+      var _this = this;
+      this.showdown = new Showdown.converter();
+      return this.editor.find('.publish-button').click(function() {
+        return $.post("/stories/" + _this.story._id + "/publish", function() {
+          return window.location.href = "/stories/" + _this.story._id;
+        });
+      });
     };
 
     StoryEditView.prototype.render = function() {
@@ -117,10 +124,9 @@
         _this = this;
       editable = $('#story-editor .editable.title');
       val = $('.title-editor input').val();
-      return $.post("/stories/" + story._id + "/saveTitle", {
+      return $.post("/stories/" + story._id, {
         title: val
       }, function(response) {
-        console.log(response);
         if (response.success) {
           editable.click(function() {
             return _this.editTitle();
@@ -250,7 +256,7 @@
         return false;
       });
       editable.find('.delete').click(function() {
-        _this.deletePart(editable);
+        _this.removePart(editable);
         return false;
       });
       editable.find('.insert').click(function() {
@@ -264,7 +270,7 @@
       var fnAfterSave, fnUpdatePart, part, save, _ref, _ref1,
         _this = this;
       part = editable.data('part');
-      this.createForm(editable, "            <form>                <select class=\"size span2\">                    <option value=\"H2\">H2</option>                    <option value=\"H3\">H3</option>                    <option value=\"H4\">H4</option>                    <option value=\"H5\">H5</option>                    <option value=\"H6\">H6</option>                                    </select>                <br />                <input type=\"text\" class=\"span6\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <form>                <select class=\"size span2\">                    <option value=\"H2\">H2</option>                    <option value=\"H3\">H3</option>                    <option value=\"H4\">H4</option>                </select>                <br />                <input type=\"text\" class=\"span6\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
       editable.find('select').focus();
       editable.find('.size').val((_ref1 = part.size) != null ? _ref1 : 'H2');
       fnUpdatePart = function() {
@@ -275,7 +281,7 @@
         return editable.html(_this.makeHtml(_this.getHeadingPrefix(part.size) + part.value));
       };
       save = function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       };
       editable.find('.save').click(save);
       return editable.find('input').keypress(function(e) {
@@ -294,7 +300,7 @@
       } else {
         rows = 8;
       }
-      this.createForm(editable, "            <form>                <textarea rows=\"" + rows + "\">" + ((_ref = part.value) != null ? _ref : '') + "</textarea>                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                                </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <form>                <textarea rows=\"" + rows + "\">" + ((_ref = part.value) != null ? _ref : '') + "</textarea>                <p class=\"left\">                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
       fnUpdatePart = function() {
         return part.value = editable.find('textarea').val();
       };
@@ -302,7 +308,7 @@
         return editable.html(_this.makeHtml(part.value));
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
@@ -310,17 +316,33 @@
       var fnAfterSave, fnUpdatePart, part, _ref,
         _this = this;
       part = editable.data('part');
-      this.createForm(editable, "            <form>                Image url: <input type=\"text\" class=\"span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" /> or <a href=\"#\" class=\"upload\">Upload file</a>                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                                    </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <div class=\"with-url\">                <form>                    Image url: <input type=\"text\" class=\"url span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" /> or <a href=\"#\" class=\"upload\">Upload file</a>                    <p class=\"left\">                        <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>                        <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>                    </p>                    <hr />                    <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>                </form>            </div>            <div class=\"with-upload\" style=\"display:none\">                <form class=\"upload-form\" name=\"form\" action=\"upload\" method=\"POST\" target=\"upload-frame\" enctype=\"multipart/form-data\" >                    <input type=\"file\" name=\"file\" /><br />                    <a href=\"#\" class=\"btn upload\">Upload</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <iframe id=\"upload-frame\" name=\"upload-frame\" src=\"\" style=\"display:none;height:0;width:0\"></iframe>                </form>            </div>");
+      editable.find('.with-url .upload').click(function() {
+        editable.find('.with-url').hide();
+        editable.find('.with-upload').show();
+        return editable.find('.with-upload .upload').click(function() {
+          var frame;
+          frame = editable.find('#upload-frame');
+          frame.unbind('load');
+          frame.load(function() {
+            var url;
+            url = $(frame[0].contentWindow.document).text();
+            editable.find('input.url').val(url);
+            return _this.savePart(editable, fnUpdatePart, fnAfterSave);
+          });
+          return editable.find('.upload-form').submit();
+        });
+      });
       fnUpdatePart = function() {
         var src;
-        src = editable.find('input').val();
+        src = editable.find('input.url').val();
         return part.value = src;
       };
       fnAfterSave = function() {
-        return editable.html(_this.makeHtml("<div class=\"media\"><img src=\"" + part.value + "\" alt=\"\" /></div>"));
+        return editable.html(_this.makeHtml("<p class=\"media\"><img src=\"" + part.value + "\" alt=\"\" /></p>"));
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
@@ -328,10 +350,11 @@
       var fnAfterSave, fnUpdatePart, part, _ref,
         _this = this;
       part = editable.data('part');
-      this.createForm(editable, "            <form>                YouTube url: <input type=\"text\" class=\"span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small\" href=\"#\">Save section</a> <a class=\"cancel small action\" href=\"#\">cancel</a>                    <a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><span class=\"plus\">+</span><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
+      this.createForm(editable, "            <form>                YouTube url: <input type=\"text\" class=\"span5\" value=\"" + ((_ref = part.value) != null ? _ref : '') + "\" />                <p class=\"left\">                    <a class=\"save btn small action\" href=\"#\"><i class=\"icon-ok\"></i>Save section</a> <i class=\"icon-remove\"></i><a class=\"cancel small action\" href=\"#\">cancel</a>                    <i class=\"icon-trash\"></i><a class=\"delete action small unsafe\" href=\"#\">delete?</a>                </p>                <hr />                <p class=\"add-section\"><i class=\"icon-arrow-down\"></i><a class=\"small action insert\" href=\"#\">insert section below</a></p>            </form>");
       fnUpdatePart = function() {
         var url;
         url = editable.find('input').val();
+        part.source = "youtube";
         return part.value = url;
       };
       fnAfterSave = function() {
@@ -340,23 +363,23 @@
         res = part.value.match(r);
         if (res) {
           videoId = res[1];
-          embed = "<div class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></div>";
+          embed = "<p class=\"media\"><iframe width=\"480\" height=\"360\" src=\"https://www.youtube.com/embed/" + videoId + "\" frameborder=\"0\" allowfullscreen></iframe></p>";
           return editable.html(embed);
         }
       };
       return editable.find('.save').click(function() {
-        return _this.updatePart(editable, fnUpdatePart, fnAfterSave);
+        return _this.savePart(editable, fnUpdatePart, fnAfterSave);
       });
     };
 
-    StoryEditView.prototype.updatePart = function(editable, fnUpdatePart, fnAfterSave) {
-      var part,
+    StoryEditView.prototype.savePart = function(editable, fnUpdatePart, fnAfterSave) {
+      var element, onComplete, part, postData,
         _this = this;
       fnUpdatePart();
       part = editable.data('part');
-      $.post("/stories/" + this.story._id + "/updatePart", {
-        part: part
-      }, function(response) {
+      postData = {};
+      SocialTypist.Utils.extend(postData, part);
+      onComplete = function(response) {
         if (response.success) {
           editable.click(function() {
             return _this.editPart(editable);
@@ -364,25 +387,57 @@
           editable.removeClass('selected');
           return fnAfterSave();
         }
-      });
+      };
+      if (!part.isNew) {
+        postData.previousParts = (function() {
+          var _i, _len, _ref, _results;
+          _ref = editable.prevAll();
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            element = _ref[_i];
+            if (!$(element).data('part').isNew) {
+              _results.push($(element).data('part')._id);
+            }
+          }
+          return _results;
+        })();
+        $.put("/stories/" + this.story._id + "/parts/" + part._id, postData, onComplete);
+      } else {
+        delete postData._id;
+        delete postData.isNew;
+        $.post("/stories/" + this.story._id + "/parts", postData, function(response) {
+          if (response.success) {
+            part._id = response._id;
+            delete part.isNew;
+          }
+          return onComplete(response);
+        });
+      }
       return false;
     };
 
     StoryEditView.prototype.cancelPartEdit = function(editable) {
       var part;
       part = editable.data('part');
-      editable.removeClass('selected');
-      return this.renderPartContent(editable);
+      if (!part.isNew) {
+        editable.removeClass('selected');
+        return this.renderPartContent(editable);
+      } else {
+        return editable.remove();
+      }
     };
 
-    StoryEditView.prototype.deletePart = function(editable) {
+    StoryEditView.prototype.removePart = function(editable) {
       var part,
         _this = this;
-      editable.click(function() {
-        return _this.editPart(editable);
-      });
       part = editable.data('part');
-      return editable.remove();
+      if (!part.isNew) {
+        return $.delete_("/stories/" + this.story._id + "/parts/" + part._id, {}, function(response) {
+          if (response.success) return editable.remove();
+        });
+      } else {
+        return editable.remove();
+      }
     };
 
     StoryEditView.prototype.addSection = function(previous) {
@@ -399,7 +454,7 @@
         }
       })();
       if (elem.hasClass('unsaved')) return;
-      content = "            <li class=\"unsaved form\">                <select class=\"part-type span2\">                    <option value=\"HEADING\">Heading</option>                    <option value=\"TEXT\" selected=\"selected\">Text</option>                    <option value=\"IMAGE\">Image</option>                    <option value=\"VIDEO\">Video</option>                </select>                <p>                    <a href=\"#\" class=\"btn add\">Add</a>                    <a href=\"#\" class=\"small action cancel\">cancel</a>                </p>            </li>        ";
+      content = "            <li class=\"unsaved form\" style=\"padding-left: 24px;\">                <ul class=\"action-list\">                    <li><i class=\"icon-align-justify\"></i><a href=\"#\" class=\"text\">Text content</a></li>                    <li><i class=\"icon-font\"></i><a href=\"#\" class=\"heading\">Heading</a></li>                    <li><i class=\"icon-picture\"></i><a href=\"#\" class=\"image\">Image</a></li>                    <li><i class=\"icon-facetime-video\"></i><a href=\"#\" class=\"video\">Video</a></li>                </ul>                <div class=\"clear\"></div>                <p>                    <i class=\"icon-remove\"></i><a style=\"font-size: 12px\" href=\"#\" class=\"cancel\">cancel</a>                </p>            </li>";
       if (previous === 'start') {
         $('#part-editor').prepend(content);
         added = $('#part-editor').children().first();
@@ -411,11 +466,12 @@
         added = previous.next();
       }
       added.find('select').focus();
-      addSection = function() {
+      addSection = function(partType) {
         var editable, part;
         part = {
-          type: added.find('.part-type').val(),
+          type: partType,
           _id: SocialTypist.Utils.uniqueId(),
+          isNew: true,
           value: ''
         };
         editable = _this.createPartContainer(part, added.prev());
@@ -423,12 +479,21 @@
         editable.data('part', part);
         return _this.editPart(editable);
       };
-      added.find('.add').click(function() {
-        addSection();
+      added.find('.text').click(function() {
+        addSection('TEXT');
         return false;
       });
-      added.find('select').keypress(function(e) {
-        if (e.which === 13) return addSection();
+      added.find('.heading').click(function() {
+        addSection('HEADING');
+        return false;
+      });
+      added.find('.image').click(function() {
+        addSection('IMAGE');
+        return false;
+      });
+      added.find('.video').click(function() {
+        addSection('VIDEO');
+        return false;
       });
       return added.find('.cancel').click(function() {
         added.remove();

@@ -40,13 +40,24 @@ findHandler = (name, getHandler) ->
 
 #all routes go here.
 app.get '/', findHandler('home', (c) -> c.index)
+
 app.post '/addSession', findHandler('home', (c) -> c.addSession)
 app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
-app.get '/stories/create', findHandler('stories', (c) -> c.create)
-app.post '/stories/create', findHandler('stories', (c) -> c.create_post)
-app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.edit)
-app.post '/stories/:storyid/saveTitle', findHandler('stories', (c) -> c.saveTitle)
-app.post '/stories/:storyid/updatePart', findHandler('stories', (c) -> c.updatePart)
+
+app.get '/stories/create', findHandler('stories', (c) -> c.createForm)
+app.post '/stories', findHandler('stories', (c) -> c.create)
+
+app.get '/stories/:storyid', findHandler('stories', (c) -> c.show)
+app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.editForm)
+app.put '/stories/:storyid', findHandler('stories', (c) -> c.update)
+
+app.post '/stories/:storyid/parts', findHandler('stories', (c) -> c.createPart)
+app.put '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.updatePart)
+app.del '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.deletePart)
+
+app.post '/stories/:storyid/publish', findHandler('stories', (c) -> c.publish)
+app.post '/stories/:storyid/upload', findHandler('stories', (c) -> c.upload)
+
 
 # handle all app errors - 500
 app.use (err, req, res, next) ->

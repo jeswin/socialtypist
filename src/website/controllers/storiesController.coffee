@@ -2,13 +2,13 @@ controller = require('./controller')
 everyauth = require 'everyauth'
 dbconf = require '../../models/dbconf'
 models = new (require '../../models').Models(dbconf.default)
+fs = require 'fs'
 
 class StoriesController extends controller.Controller
 
-    constructor: () ->
-    
+    constructor: () ->    
         #These methods needs a logged-in user.
-        for fn in ['write', 'write_post', 'edit']
+        for fn in ['createForm', 'create', 'editForm', 'update', 'createPart', 'updatePart', 'deletePart', 'publish', 'upload']
             @[fn] = @ensureSession @[fn]
 
 
@@ -16,14 +16,20 @@ class StoriesController extends controller.Controller
     index: (req, res, next) =>
         res.render 'stories/index.hbs', { loginStatus: @getLoginStatus(req) }
         
-        
+    
+    
+    show: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>    
+            res.render 'stories/show.hbs', { loginStatus: @getLoginStatus(req), content: story.html }
+    
+    
             
-    create: (req, res, next) =>
+    createForm: (req, res, next) =>
         res.render 'stories/create.hbs', { loginStatus: @getLoginStatus(req) }
         
         
     
-    create_post: (req, res, next) =>
+    create: (req, res, next) =>
         story = new models.Story()
         story.title = req.body.title
         story.description = req.body.description
@@ -35,7 +41,7 @@ class StoriesController extends controller.Controller
           
   
   
-    edit: (req, res, next) =>
+    editForm: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             story.getParts (err, parts) =>
                 story._objects = { parts: parts }
@@ -43,8 +49,9 @@ class StoriesController extends controller.Controller
         
         
         
-    saveTitle: (req, res, next) =>
+    update: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
+            #Right now we only support updating the title.
             story.title = req.body.title
             story.save req.session.user._id, () =>
                 res.contentType 'json'
@@ -52,16 +59,50 @@ class StoriesController extends controller.Controller
         
         
     
+    createPart: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            part = @getPartFromBody(req.body)
+            story.createPart part, req.body.previousParts, req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true, _id: part._id }
+
+
+
     updatePart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.updatePart new models.StoryPart(req.body.part), req.session.user._id, () =>
+            story.updatePart @getPartFromBody(req.body), req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+                   
+                    
+
+    deletePart: (req, res, next) =>                    
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.deletePart req.params.partid, req.session.user._id, () =>
                 res.contentType 'json'
                 res.send { success: true }   
                 
-    
+                
+
+    publish: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.publish req.session.user._id, () =>
+                res.contentType 'json'
+                res.send { success: true }   
           
-    item: (req, res, next) =>
-        models.Story.get req.params.id, (story) =>
+        
+    
+    upload: (req, res, next) =>
+    	if (req.files)    	    
+            targetPath = "./public/images/content/#{req.params.storyid}_#{req.files.file.name}"            
+            fs.rename req.files.file.path, targetPath, (err) =>
+                res.send "/public/images/content/#{req.params.storyid}_#{req.files.file.name}"
+                           
+        
+          
+    getPartFromBody: (body) =>
+        new models.StoryPart body
+        
             
     
 exports.StoriesController = StoriesController
