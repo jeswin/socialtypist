@@ -1,6 +1,6 @@
 controller = require './controller'
-homeController = require './homeController'
-storiesController = require './storiesController'    
+homeController = require './homecontroller'
+storiesController = require './storiescontroller'    
 
 exports.Controller = controller.Controller    
 exports.HomeController = homeController.HomeController

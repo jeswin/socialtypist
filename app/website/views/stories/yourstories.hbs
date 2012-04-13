@@ -3,7 +3,7 @@
     <p class="main-links">
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
-        | <a class="yourstories" href="/stories/yours">Your stories</a>
+        | <a class="mystories" href="#">Your stories</a>
         {{/if}}
         | <a class="write selected" href="#">Write a story</a>
     </p>
@@ -11,7 +11,13 @@
         <div class="content-pane span8">
             <div class="story">
                 <div class="content">
-                    {{{content}}}
+                    {{#if stories}}
+                    <ul>
+                        {{#each stories}}
+                            <li>{{this.title}}</li>
+                        {{/each}}
+                    </ul>
+                    {{/if}}         
                 </div>
             </div>
         </div>

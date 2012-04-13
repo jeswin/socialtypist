@@ -23,6 +23,13 @@ class StoriesController extends controller.Controller
             res.render 'stories/show.hbs', { loginStatus: @getLoginStatus(req), content: story.html }
     
     
+    
+    yourStories: (req, res, next) =>
+        models.Story.getByUserId req.session.user._id, (err, stories) =>
+            res.render 'stories/yourstories.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
+    
+    
+    
             
     createForm: (req, res, next) =>
         res.render 'stories/create.hbs', { loginStatus: @getLoginStatus(req) }

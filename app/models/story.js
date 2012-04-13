@@ -63,6 +63,20 @@
       });
     };
 
+    Story.getByUserId = function(userid, cb) {
+      return Story._database.find('stories', {
+        '$or': [
+          {
+            owners: userid
+          }, {
+            authors: userid
+          }
+        ]
+      }, function(err, results) {
+        return cb(err, results);
+      });
+    };
+
     Story.prototype.getParts = function(cb) {
       var partId,
         _this = this;

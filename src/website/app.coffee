@@ -10,8 +10,11 @@ models = new (require '../models').Models(dbconf.default)
 controllers = require './controllers'
 utils = require '../common/utils'
 
+FACEBOOK_APP_ID = '259516830808506'
+FACEBOOK_SECRET = '4d0e2877593e04e2f4520105b91ca522'
 
 app = express.createServer()
+
 app.use express.bodyParser({uploadDir:'public/temp/images'})
 
 app.set("view engine", "hbs");
@@ -28,7 +31,6 @@ app.use express.cookieParser()
 #app.use cookieSessions('sid')
 app.use express.session({secret:'345fdgerf', store: new MongoStore({ db: 'typistsessions', native: false })})
 
-
 #a channel factory
 findHandler = (name, getHandler) ->
     return (req, res, next) ->
@@ -42,6 +44,7 @@ findHandler = (name, getHandler) ->
 app.get '/', findHandler('home', (c) -> c.index)
 
 app.post '/addSession', findHandler('home', (c) -> c.addSession)
+app.post '/addSession_INSECURE', findHandler('home', (c) -> c.addSession_INSECURE)
 app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
 
 app.get '/stories/create', findHandler('stories', (c) -> c.createForm)

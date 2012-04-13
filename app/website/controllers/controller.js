@@ -13,14 +13,14 @@
       if ((_ref = req.session.user) != null ? _ref.username : void 0) {
         status = {
           loggedIn: true,
-          js: "window.loggedIn = true; window.username = '" + req.session.user.username + "';",
-          header: "<a class=\"loginStatus\" href=\"#\">Logout</a> <span class=\"username\">" + req.session.user.username + "</span>"
+          js: "window.authProvider = '" + req.session.authProvider + "'; window.loggedIn = true; window.username = '" + req.session.user.username + "';",
+          header: "<a class=\"logoutLink\" href=\"#\">Logout</a> <span class=\"username\">" + req.session.user.username + "</span>"
         };
       } else {
         status = {
           loggedIn: false,
           js: "window.loggedIn = false; window.username = null;",
-          header: '<img src="/public/images/facebook.png" /><a class="loginStatus" href="#">Login</a>'
+          header: '<img src="/public/images/facebook.png" /><a class="fbLoginLink" href="#">Login</a>'
         };
       }
       return status;

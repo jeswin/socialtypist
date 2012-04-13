@@ -11,7 +11,13 @@
         <div class="content-pane span8">
             <div class="story">
                 <div class="content">
-                    {{{content}}}
+                    {{#if stories}}
+                    <ul>
+                        {{#each stories}}
+                            <li>{{this.title}}</li>
+                        {{/each}}
+                    </ul>
+                    {{/if}}         
                 </div>
             </div>
         </div>

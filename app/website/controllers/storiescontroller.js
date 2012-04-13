@@ -42,6 +42,8 @@
 
       this.createForm = __bind(this.createForm, this);
 
+      this.yourStories = __bind(this.yourStories, this);
+
       this.show = __bind(this.show, this);
 
       this.index = __bind(this.index, this);
@@ -66,6 +68,16 @@
         return res.render('stories/show.hbs', {
           loginStatus: _this.getLoginStatus(req),
           content: story.html
+        });
+      });
+    };
+
+    StoriesController.prototype.yourStories = function(req, res, next) {
+      var _this = this;
+      return models.Story.getByUserId(req.session.user._id, function(err, stories) {
+        return res.render('stories/yourstories.hbs', {
+          loginStatus: _this.getLoginStatus(req),
+          stories: stories
         });
       });
     };

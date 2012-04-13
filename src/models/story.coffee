@@ -21,6 +21,12 @@ class Story extends BaseModel
             cb null, if result then new Story(result)
 
 
+    
+    @getByUserId: (userid, cb) =>
+        Story._database.find 'stories', { '$or': [ { owners: userid }, { authors: userid } ] }, (err, results) =>
+            cb err, results
+
+
 
     getParts: (cb) =>
         Story._database.find 'storyparts', { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, parts) =>

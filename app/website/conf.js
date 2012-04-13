@@ -9,7 +9,8 @@
       name: 'typistdb',
       host: localhost,
       port: 27017
-    }
+    },
+    deployment: 'DEBUG'
   };
 
 }).call(this);

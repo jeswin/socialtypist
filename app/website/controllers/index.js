@@ -4,9 +4,9 @@
 
   controller = require('./controller');
 
-  homeController = require('./homeController');
+  homeController = require('./homecontroller');
 
-  storiesController = require('./storiesController');
+  storiesController = require('./storiescontroller');
 
   exports.Controller = controller.Controller;
 
