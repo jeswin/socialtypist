@@ -67,13 +67,15 @@
       return Story._database.find('stories', {
         '$or': [
           {
-            owners: userid
+            'owners._id': Story._database.ObjectId(userid)
           }, {
-            authors: userid
+            'authors._id': Story._database.ObjectId(userid)
           }
         ]
-      }, function(err, results) {
-        return cb(err, results);
+      }, function(err, cursor) {
+        return cursor.toArray(function(err, stories) {
+          return cb(err, stories);
+        });
       });
     };
 

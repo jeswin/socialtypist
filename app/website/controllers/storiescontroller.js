@@ -42,14 +42,14 @@
 
       this.createForm = __bind(this.createForm, this);
 
-      this.yourStories = __bind(this.yourStories, this);
+      this.yours = __bind(this.yours, this);
 
       this.show = __bind(this.show, this);
 
       this.index = __bind(this.index, this);
 
       var fn, _i, _len, _ref;
-      _ref = ['createForm', 'create', 'editForm', 'update', 'createPart', 'updatePart', 'deletePart', 'publish', 'upload'];
+      _ref = ['yours', 'createForm', 'create', 'editForm', 'update', 'createPart', 'updatePart', 'deletePart', 'publish', 'upload'];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         fn = _ref[_i];
         this[fn] = this.ensureSession(this[fn]);
@@ -72,10 +72,10 @@
       });
     };
 
-    StoriesController.prototype.yourStories = function(req, res, next) {
+    StoriesController.prototype.yours = function(req, res, next) {
       var _this = this;
       return models.Story.getByUserId(req.session.user._id, function(err, stories) {
-        return res.render('stories/yourstories.hbs', {
+        return res.render('stories/yours.hbs', {
           loginStatus: _this.getLoginStatus(req),
           stories: stories
         });
@@ -193,7 +193,8 @@
     };
 
     StoriesController.prototype.getPartFromBody = function(body) {
-      return new models.StoryPart(body);
+      var part;
+      return part = new models.StoryPart(body);
     };
 
     return StoriesController;

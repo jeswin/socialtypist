@@ -3,9 +3,9 @@
     <p class="main-links">
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
-        | <a class="mystories" href="#">Your stories</a>
+        | <a class="your-stories" href="/stories/yours">Your stories</a>
         {{/if}}
-        | <a class="write selected" href="#">Write a story</a>
+        | <a class="create-story" href="/stories/create">Write a story</a>
     </p>
     <div class="content-area row">
         <div class="content-pane span8">
@@ -13,11 +13,46 @@
                 <div class="content">
                     {{{content}}}
                 </div>
+                <hr />
+                <h3>Comments</h3>
+                <div class="comments">
+                    <p><i class="icon-plus"></i><a href="#">Add a comment</a></p>
+                    <div style="display:none" class="add-comment">
+                    </div>
+                    <ul>
+                        {{comments}}
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="content-pane span4">
-            <p>There will be some content here....</p>
-        </div>
+            <div class="rpadded">
+                <div class="section">
+                    <h3>Improve this story?</h3>
+                    <ul class="iconic-list">
+                        <li><i class="icon-pencil"></i><a href="#">Become an author</a></li>
+                        <li><i class="icon-random"></i><a href="#">Fork this story</a></li>
+                    </ul>
+                </div>
+                <div class="section">
+                    <h3>Comments <a class="standard" href="" style="">more...</a></h3>
+                    <ul class="iconic-summary">
+                        <li>
+                            <div class="icon">
+                                <img src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-snc4/157146_787499687_1418935023_q.jpg" />
+                            </div>
+                            <div class="summary">
+                                <h2><a href="">Jeswin Pwong</a></h2>
+                                <p>
+                                    Charlotte Udziela, a retired community college instructor in Beaverton, Ore., who supports Mr. Obama, said she wished both campaigns
+                                </p>
+                            </div>
+                            <div class="clear"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>        
         <div class="clear"></div>
     </div>
 </div>

@@ -3,7 +3,6 @@
     var story = {{{story}}};
     $(document).ready(function() {
         var view = new SocialTypist.StoryEditView(story, $('#story-editor'));
-        view.render();
     });
 </script>
 <div class="container">
@@ -11,9 +10,9 @@
     <p class="main-links">
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
-        | <a class="yourstories" href="/stories/yours">Your stories</a>
+        | <a class="your-stories" href="/stories/yours">Your stories</a>
         {{/if}}
-        | <a class="write selected" href="#">Write a story</a>
+        | <a class="create-story selected" href="#">Write a story</a>
     </p>
     <div class="content-area row" id="story-editor">
         <div class="content-pane span8">
@@ -36,8 +35,12 @@
         </div>
         <div class="content-pane span4">
             <p class="form">
-                <a href="#" class="publish-button btn btn-large">Publish Story</a>
+                <a href="#" class="publish-button btn btn-large">Publish Story</a> <a class="padded" href="#">preview</a>
             </p>
+            <div class="authors section">
+            </div>
+            <div class="live-updates">
+            </div>
         </div>
         <div class="clear"></div>
     </div>

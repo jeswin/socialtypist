@@ -50,6 +50,7 @@ app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
 app.get '/stories/create', findHandler('stories', (c) -> c.createForm)
 app.post '/stories', findHandler('stories', (c) -> c.create)
 
+app.get '/stories/yours', findHandler('stories', (c) -> c.yours)
 app.get '/stories/:storyid', findHandler('stories', (c) -> c.show)
 app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.editForm)
 app.put '/stories/:storyid', findHandler('stories', (c) -> c.update)

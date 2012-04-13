@@ -15,7 +15,6 @@ class Story extends BaseModel
     }
 
 
-
     @getById: (id, cb) =>
         Story._database.findOne 'stories', { '_id': @_database.ObjectId(id) }, (err, result) =>
             cb null, if result then new Story(result)
@@ -23,8 +22,9 @@ class Story extends BaseModel
 
     
     @getByUserId: (userid, cb) =>
-        Story._database.find 'stories', { '$or': [ { owners: userid }, { authors: userid } ] }, (err, results) =>
-            cb err, results
+        Story._database.find 'stories', { '$or': [ { 'owners._id': @_database.ObjectId(userid) }, { 'authors._id': @_database.ObjectId(userid) } ] }, (err, cursor) =>
+            cursor.toArray (err, stories) =>
+                cb err, stories
 
 
 
@@ -56,6 +56,7 @@ class Story extends BaseModel
             @parts = []
             @published = false
             @title = sanitize @title, allowedTags, allowedAttributes
+            
             super () =>
                 async.series [
                         ((cb) =>
@@ -70,6 +71,7 @@ class Story extends BaseModel
                             part.value = "This is some sample content. Click to edit."
                             @createPart part, [@parts[0]], user, cb)                        
                     ], () => cb()
+                    
                 
         else
             #Only owners may save

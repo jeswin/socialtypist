@@ -3,9 +3,9 @@
     <p class="main-links">
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
-        | <a class="yourstories" href="/stories/yours">Your stories</a>
+        | <a class="your-stories selected" href="/stories/yours">Your stories</a>
         {{/if}}
-        | <a class="write selected" href="#">Write a story</a>
+        | <a class="create-story" href="/stories/create">Write a story</a>
     </p>
     <div class="content-area row">
         <div class="content-pane span8">
@@ -14,7 +14,7 @@
                     {{#if stories}}
                     <ul>
                         {{#each stories}}
-                            <li>{{this.title}}</li>
+                            <li><a href="/stories/{{this._id}}">{{this.title}}</a></li>
                         {{/each}}
                     </ul>
                     {{/if}}         

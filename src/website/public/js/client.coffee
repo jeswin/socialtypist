@@ -1,4 +1,4 @@
-DEBUG = true
+window.DEBUG = true
 
 class Client
     constructor: () ->

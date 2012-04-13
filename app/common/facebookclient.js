@@ -24,9 +24,8 @@
       match = request_headers["cookie"].match(/fbsr_[\d]+\=([^; ]+)/);
       cookie = match[1];
       parts = cookie.split('.');
-      buffer = new Buffer(base64_string, 'base64');
+      buffer = new Buffer(convertBase64ToHex(parts[0].replace(/\-/g, '+').replace(/\_/g, '/'), 'base64'));
       signature = buffer.toString('hex');
-      signature = self.convertBase64ToHex(parts[0].replace(/\-/g, '+').replace(/\_/g, '/'));
       payload = parts[1];
       json = new Buffer(payload.replace(/\-/g, '+').replace(/\_/g, '/'), 'base64').toString('binary');
       contents = JSON.parse(json);

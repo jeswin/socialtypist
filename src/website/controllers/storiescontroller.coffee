@@ -8,7 +8,7 @@ class StoriesController extends controller.Controller
 
     constructor: () ->    
         #These methods needs a logged-in user.
-        for fn in ['createForm', 'create', 'editForm', 'update', 'createPart', 'updatePart', 'deletePart', 'publish', 'upload']
+        for fn in ['yours', 'createForm', 'create', 'editForm', 'update', 'createPart', 'updatePart', 'deletePart', 'publish', 'upload']
             @[fn] = @ensureSession @[fn]
 
 
@@ -19,15 +19,14 @@ class StoriesController extends controller.Controller
     
     
     show: (req, res, next) =>
-        models.Story.getById req.params.storyid, (err, story) =>    
+        models.Story.getById req.params.storyid, (err, story) =>
             res.render 'stories/show.hbs', { loginStatus: @getLoginStatus(req), content: story.html }
     
     
     
-    yourStories: (req, res, next) =>
+    yours: (req, res, next) =>
         models.Story.getByUserId req.session.user._id, (err, stories) =>
-            res.render 'stories/yourstories.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
-    
+            res.render 'stories/yours.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
     
     
             
@@ -108,8 +107,8 @@ class StoriesController extends controller.Controller
         
           
     getPartFromBody: (body) =>
-        new models.StoryPart body
-        
+        part = new models.StoryPart body
+       
             
     
 exports.StoriesController = StoriesController

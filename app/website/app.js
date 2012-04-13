@@ -91,6 +91,10 @@
     return c.create;
   }));
 
+  app.get('/stories/yours', findHandler('stories', function(c) {
+    return c.yours;
+  }));
+
   app.get('/stories/:storyid', findHandler('stories', function(c) {
     return c.show;
   }));

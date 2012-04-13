@@ -1,26 +1,67 @@
 class StoryEditView
 
+    constructor: (@story, @editor) ->
+        @setActiveTab 'content'
+        @renderRightPane()
+
+
+
+    setActiveTab: (tab) ->       
+        switch tab
+            when 'content' then new ContentEditor @story, @editor
+            when 'settings' then new SettingsEditor @story, @editor
+            when 'messages' then new MessagePane @story, @editor
+            when 'history' then new HistoryPane @story, @editor
+
+
+
+    renderRightPane: () =>
+        @populateAuthors()
+        @setupLiveUpdate()
+
+
+
+    populateAuthors: () =>
+        authorsContainer = @editor.find('.authors')
+        authorsContainer.html '
+            <h3>Authors</h3>
+            <ul class="iconic-summary"></ul>'
+        authors = authorsContainer.find 'ul'
+        for owner in @story.owners
+            authors.append "
+                <li>
+                    <div class=\"icon\">
+                        <img src=\"http://graph.facebook.com/#{owner.domainid}/picture?type=square\" />
+                    </div>
+                    <div class=\"summary\">
+                        <h3>#{owner.name}</h3>
+                        <p>Owner</p>
+                    </div>
+                </li>"
+
+
+    
+    setupLiveUpdate: () =>
+
+
+
+class ContentEditor
+    
     constructor: (@story, @editor) ->    
         @container = $(@editor.find('.story'))
-        @initialize()
 
-
-
-    initialize: () =>
         @showdown = new Showdown.converter()
         @editor.find('.publish-button').click () =>
             $.post "/stories/#{@story._id}/publish", () =>
                 window.location.href = "/stories/#{@story._id}"
-    
-    
-    render: () =>
+
         @createTitle()        
         @createParts()        
-        
+
 
     
     createTitle: () =>
-        @container.append "<div class=\"editable title\"><h1 class=\"title\">#{@story.title}</h1></div>"
+        @container.append "<div class=\"editable title\"><h1>#{@story.title}</h1></div>"
         title = @container.find('.editable.title')
         title.data 'title', @story.title
         title.click () =>
@@ -471,6 +512,7 @@ class StoryEditView
             added.remove()
             return false
 
+
     makeHtml: (markdown) =>
         if markdown
             @showdown.makeHtml markdown
@@ -494,7 +536,7 @@ class StoryEditView
             when 'H4' then '####'
             when 'H5' then '#####'
             when 'H6' then '######'                                                
-            
+        
                 
 this.SocialTypist.StoryEditView = StoryEditView
     
