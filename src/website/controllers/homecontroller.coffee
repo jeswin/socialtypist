@@ -41,14 +41,18 @@ class HomeController extends controller.Controller
         if require('../conf').deployment != 'DEBUG'
             throw { type: 'BAD_MODE', message: 'This insecure function is callable only in debug mode.' }
 
+        console.log 'Adding an insecure session.'
+
         if req.body.domain == 'facebook'
-            @getOrCreateFBUser req.body.userDetails, (err, user) =>
-                    req.session.authProvider = 'facebook'
-                    req.session.domainResponse = req.body.response
-                    req.session.accessToken = req.body.response.authResponse.accessToken
-                    req.session.user = user
-                    res.contentType 'json'
-                    res.send { success: true }                  
+            if not req.body.userDetails.username?
+                req.body.userDetails.username = req.body.userDetails.name
+            @getOrCreateFBUser req.body.userDetails, (err, user) =>            
+                req.session.authProvider = 'facebook'
+                req.session.domainResponse = req.body.response
+                req.session.accessToken = req.body.response.authResponse.accessToken
+                req.session.user = user
+                res.contentType 'json'
+                res.send { success: true }                  
 
                         
     
@@ -56,7 +60,13 @@ class HomeController extends controller.Controller
         models.User.get { domain: 'facebook', username: userDetails.username }, (err, user) =>
      
             if user?
-                cb null, user
+                #Update some details
+                user.name = userDetails.name
+                user.firstName = userDetails.first_name
+                user.lastName = userDetails.last_name
+                user.location = userDetails.location
+                user.save () =>
+                    cb null, user
                 
             else                            
                 #User doesn't exist. create.

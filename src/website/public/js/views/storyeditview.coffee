@@ -8,8 +8,8 @@ class StoryEditView
 
     setActiveTab: (tab) ->       
         switch tab
-            when 'content' then new ContentEditor @story, @editor
             when 'settings' then new SettingsEditor @story, @editor
+            when 'content' then new ContentEditor @story, @editor
             when 'messages' then new MessagePane @story, @editor
             when 'history' then new HistoryPane @story, @editor
 
@@ -43,6 +43,12 @@ class StoryEditView
     
     setupLiveUpdate: () =>
 
+
+
+class SettingsEditor
+
+    constructor: () ->
+        
 
 
 class ContentEditor

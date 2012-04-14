@@ -12,6 +12,8 @@
     function BaseModel(params) {
       this.save = __bind(this.save, this);
 
+      this.oid = __bind(this.oid, this);
+
       var meta;
       utils.extend(this, params);
       meta = this.constructor._meta;
@@ -27,6 +29,26 @@
       });
     };
 
+    BaseModel.getAll = function(params, cb) {
+      var meta,
+        _this = this;
+      meta = this._meta;
+      return this._database.find(meta.collection, params, function(err, cursor) {
+        return cursor.toArray(function(err, items) {
+          var item;
+          return cb(err, (items != null ? items.length : void 0) ? (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = items.length; _i < _len; _i++) {
+              item = items[_i];
+              _results.push(new meta.type(item));
+            }
+            return _results;
+          })() : []);
+        });
+      });
+    };
+
     BaseModel.getById = function(id, cb) {
       var meta,
         _this = this;
@@ -34,8 +56,12 @@
       return this._database.findOne(meta.collection, {
         '_id': this._database.ObjectId(id)
       }, function(err, result) {
-        return cb(err, result ? new meta.type() : void 0);
+        return cb(err, result ? new meta.type(result) : void 0);
       });
+    };
+
+    BaseModel.prototype.oid = function() {
+      return this._id.toString();
     };
 
     BaseModel.prototype.save = function(cb) {

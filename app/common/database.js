@@ -83,6 +83,12 @@
       });
     };
 
+    Database.prototype.findById = function(collectionName, id, cb) {
+      return this.findOne(collectionName, {
+        _id: this.ObjectId(id)
+      }, cb);
+    };
+
     Database.prototype.findOne = function(collectionName, query, cb) {
       return this.find(collectionName, query, function(err, cursor) {
         return cursor.nextObject(function(err, item) {

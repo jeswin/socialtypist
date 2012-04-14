@@ -20,12 +20,22 @@ class StoriesController extends controller.Controller
     
     show: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            res.render 'stories/show.hbs', { loginStatus: @getLoginStatus(req), content: story.html }
+            if story
+                loginStatus = @getLoginStatus(req)
+                if loginStatus.loggedIn
+                    owners = (owner for owner in story.owners when owner == @getUserId())
+                    authors = (author for author in story.authors when author == @getUserId())
+                    isAuthor = owners.length > 0 or authors.length > 0
+                else
+                    isAuthor = false
+                res.render 'stories/show.hbs', { loginStatus: loginStatus, story: story, isAuthor: isAuthor }
+            else
+                res.render 'Story does not exist.'
     
     
     
     yours: (req, res, next) =>
-        models.Story.getByUserId req.session.user._id, (err, stories) =>
+        models.Story.getByUserId @getUserId, (err, stories) =>
             res.render 'stories/yours.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
     
     
@@ -38,11 +48,8 @@ class StoriesController extends controller.Controller
     create: (req, res, next) =>
         story = new models.Story()
         story.title = req.body.title
-        story.description = req.body.description
-        story.collaborators = parseInt req.body.collaborators
         story.tags = req.body.tags
-        story.messageToAuthors = req.body.messageToAuthors
-        story.save req.session.user, () =>
+        story.save @getUserId(), () =>
             res.redirect "/stories/#{story._id}/edit"
           
   
@@ -59,16 +66,28 @@ class StoriesController extends controller.Controller
         models.Story.getById req.params.storyid, (err, story) =>
             #Right now we only support updating the title.
             story.title = req.body.title
-            story.save req.session.user._id, () =>
+            story.save @getUserId, () =>
                 res.contentType 'json'
                 res.send { success: true }   
+        
+        
+    createMessage: (req, res, next) =>
+        message = new models.Message()
+        message.contents = req.body.message
+        message.story = req.params.storyid
+        message.type = req.body.type
+        message.from = @getUserId()
+        message.timestamp = new Date().getTime()
+        message.save () =>
+            res.contentType 'json'
+            res.send { success: true }
         
         
     
     createPart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             part = @getPartFromBody(req.body)
-            story.createPart part, req.body.previousParts, req.session.user._id, () =>
+            story.createPart part, req.body.previousParts, @getUserId(), () =>
                 res.contentType 'json'
                 res.send { success: true, _id: part._id }
 
@@ -76,7 +95,7 @@ class StoriesController extends controller.Controller
 
     updatePart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.updatePart @getPartFromBody(req.body), req.session.user._id, () =>
+            story.updatePart @getPartFromBody(req.body), @getUserId(), () =>
                 res.contentType 'json'
                 res.send { success: true }   
                    
@@ -84,7 +103,7 @@ class StoriesController extends controller.Controller
 
     deletePart: (req, res, next) =>                    
         models.Story.getById req.params.storyid, (err, story) =>
-            story.deletePart req.params.partid, req.session.user._id, () =>
+            story.deletePart req.params.partid, @getUserId(), () =>
                 res.contentType 'json'
                 res.send { success: true }   
                 
@@ -92,7 +111,7 @@ class StoriesController extends controller.Controller
 
     publish: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.publish req.session.user._id, () =>
+            story.publish @getUserId(), () =>
                 res.contentType 'json'
                 res.send { success: true }   
           

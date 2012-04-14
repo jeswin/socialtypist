@@ -13,13 +13,26 @@ class BaseModel
         meta = @_meta
         @_database.findOne meta.collection, params, (err, result) =>
             cb err, if result then new meta.type(result)
-            
+
+
+    @getAll: (params, cb) ->
+        meta = @_meta
+        @_database.find meta.collection, params, (err, cursor) =>
+            cursor.toArray (err, items) =>
+                cb err, if items?.length then (new meta.type(item) for item in items) else []
+
+                
            
     @getById: (id, cb) ->
         meta = @_meta
         @_database.findOne meta.collection, { '_id': @_database.ObjectId(id) }, (err, result) =>
-            cb err, if result then new meta.type()
+            cb err, if result then new meta.type(result)
 
+
+    oid: () =>
+        @_id.toString()
+        
+        
 
     save: (cb) =>
         #Don't save _objects, which holds instances of linked objects.

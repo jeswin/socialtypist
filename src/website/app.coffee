@@ -55,6 +55,8 @@ app.get '/stories/:storyid', findHandler('stories', (c) -> c.show)
 app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.editForm)
 app.put '/stories/:storyid', findHandler('stories', (c) -> c.update)
 
+app.post '/stories/:storyid/messages', findHandler('stories', (c) -> c.createMessage)
+
 app.post '/stories/:storyid/parts', findHandler('stories', (c) -> c.createPart)
 app.put '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.updatePart)
 app.del '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.deletePart)

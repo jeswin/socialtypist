@@ -36,6 +36,17 @@
       };
     };
 
+    Controller.prototype.getUserId = function() {
+      var _ref;
+      if ((_ref = req.session.user) != null ? _ref.username : void 0) {
+        return req.session.user._id;
+      } else {
+        throw {
+          type: 'NOT_LOGGED_IN'
+        };
+      }
+    };
+
     return Controller;
 
   })();

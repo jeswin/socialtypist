@@ -34,6 +34,8 @@
 
       this.createPart = __bind(this.createPart, this);
 
+      this.createMessage = __bind(this.createMessage, this);
+
       this.update = __bind(this.update, this);
 
       this.editForm = __bind(this.editForm, this);
@@ -65,16 +67,48 @@
     StoriesController.prototype.show = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return res.render('stories/show.hbs', {
-          loginStatus: _this.getLoginStatus(req),
-          content: story.html
-        });
+        var author, authors, isAuthor, loginStatus, owner, owners;
+        if (story) {
+          loginStatus = _this.getLoginStatus(req);
+          if (loginStatus.loggedIn) {
+            owners = (function() {
+              var _i, _len, _ref, _results;
+              _ref = story.owners;
+              _results = [];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                owner = _ref[_i];
+                if (owner === this.getUserId()) _results.push(owner);
+              }
+              return _results;
+            }).call(_this);
+            authors = (function() {
+              var _i, _len, _ref, _results;
+              _ref = story.authors;
+              _results = [];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                author = _ref[_i];
+                if (author === this.getUserId()) _results.push(author);
+              }
+              return _results;
+            }).call(_this);
+            isAuthor = owners.length > 0 || authors.length > 0;
+          } else {
+            isAuthor = false;
+          }
+          return res.render('stories/show.hbs', {
+            loginStatus: loginStatus,
+            story: story,
+            isAuthor: isAuthor
+          });
+        } else {
+          return res.render('Story does not exist.');
+        }
       });
     };
 
     StoriesController.prototype.yours = function(req, res, next) {
       var _this = this;
-      return models.Story.getByUserId(req.session.user._id, function(err, stories) {
+      return models.Story.getByUserId(this.getUserId, function(err, stories) {
         return res.render('stories/yours.hbs', {
           loginStatus: _this.getLoginStatus(req),
           stories: stories
@@ -93,11 +127,8 @@
         _this = this;
       story = new models.Story();
       story.title = req.body.title;
-      story.description = req.body.description;
-      story.collaborators = parseInt(req.body.collaborators);
       story.tags = req.body.tags;
-      story.messageToAuthors = req.body.messageToAuthors;
-      return story.save(req.session.user, function() {
+      return story.save(this.getUserId(), function() {
         return res.redirect("/stories/" + story._id + "/edit");
       });
     };
@@ -121,11 +152,28 @@
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
         story.title = req.body.title;
-        return story.save(req.session.user._id, function() {
+        return story.save(_this.getUserId, function() {
           res.contentType('json');
           return res.send({
             success: true
           });
+        });
+      });
+    };
+
+    StoriesController.prototype.createMessage = function(req, res, next) {
+      var message,
+        _this = this;
+      message = new models.Message();
+      message.contents = req.body.message;
+      message.story = req.params.storyid;
+      message.type = req.body.type;
+      message.from = this.getUserId();
+      message.timestamp = new Date().getTime();
+      return message.save(function() {
+        res.contentType('json');
+        return res.send({
+          success: true
         });
       });
     };
@@ -135,7 +183,7 @@
       return models.Story.getById(req.params.storyid, function(err, story) {
         var part;
         part = _this.getPartFromBody(req.body);
-        return story.createPart(part, req.body.previousParts, req.session.user._id, function() {
+        return story.createPart(part, req.body.previousParts, _this.getUserId(), function() {
           res.contentType('json');
           return res.send({
             success: true,
@@ -148,7 +196,7 @@
     StoriesController.prototype.updatePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.updatePart(_this.getPartFromBody(req.body), req.session.user._id, function() {
+        return story.updatePart(_this.getPartFromBody(req.body), _this.getUserId(), function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -160,7 +208,7 @@
     StoriesController.prototype.deletePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.deletePart(req.params.partid, req.session.user._id, function() {
+        return story.deletePart(req.params.partid, _this.getUserId(), function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -172,7 +220,7 @@
     StoriesController.prototype.publish = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.publish(req.session.user._id, function() {
+        return story.publish(_this.getUserId(), function() {
           res.contentType('json');
           return res.send({
             success: true

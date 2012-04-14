@@ -25,6 +25,12 @@ class Controller
                 res.redirect '/login'
         
         
+    getUserId: () ->
+        if req.session.user?.username
+            return req.session.user._id
+        else
+            throw { type: 'NOT_LOGGED_IN' }
+        
 exports.Controller = Controller
 
 

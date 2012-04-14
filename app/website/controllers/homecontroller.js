@@ -77,7 +77,11 @@
           message: 'This insecure function is callable only in debug mode.'
         };
       }
+      console.log('Adding an insecure session.');
       if (req.body.domain === 'facebook') {
+        if (!(req.body.userDetails.username != null)) {
+          req.body.userDetails.username = req.body.userDetails.name;
+        }
         return this.getOrCreateFBUser(req.body.userDetails, function(err, user) {
           req.session.authProvider = 'facebook';
           req.session.domainResponse = req.body.response;
@@ -98,7 +102,13 @@
         username: userDetails.username
       }, function(err, user) {
         if (user != null) {
-          return cb(null, user);
+          user.name = userDetails.name;
+          user.firstName = userDetails.first_name;
+          user.lastName = userDetails.last_name;
+          user.location = userDetails.location;
+          return user.save(function() {
+            return cb(null, user);
+          });
         } else {
           user = new models.User();
           user.domain = 'facebook';

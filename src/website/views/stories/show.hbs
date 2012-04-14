@@ -1,9 +1,18 @@
+<script src="/public/js/views/storyview.js"></script>
+<script>
+    window.story = "{{story._id}}";
+    $(document).ready(function() {
+        var view = new SocialTypist.StoryView();
+    });
+</script>
+
 <div class="container">
     <h1><a href="/">Social Typist</a></h1>
     <p class="main-links">
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
         | <a class="your-stories" href="/stories/yours">Your stories</a>
+        | <a class="messages" href="/messages">Messages</a>        
         {{/if}}
         | <a class="create-story" href="/stories/create">Write a story</a>
     </p>
@@ -11,44 +20,69 @@
         <div class="content-pane span8">
             <div class="story">
                 <div class="content">
-                    {{{content}}}
+                    {{{story.html}}}
                 </div>
                 <hr />
-                <h3>Comments</h3>
                 <div class="comments">
-                    <p><i class="icon-plus"></i><a href="#">Add a comment</a></p>
-                    <div style="display:none" class="add-comment">
-                    </div>
-                    <ul>
-                        {{comments}}
-                    </ul>
+                    <div class="fb-comments" data-href="http://www.socialtypist.com/stories/{{story._id}}" data-num-posts="10" data-width="470"></div>
                 </div>
             </div>
         </div>
         <div class="content-pane span4">
             <div class="rpadded">
+                <div class="fb-like" data-send="true" data-layout="button_count" data-width="150" data-show-faces="true" data-font="verdana"></div>
+                {{#if isAuthor}}
+                    <div class="section">
+                        <p>
+                            <a href="/stories/{{story._id}}/edit" class="btn btn-large">Edit Story</a>
+                        </p>
+                    </div>
+                {{/if}}
+               
                 <div class="section">
-                    <h3>Improve this story?</h3>
-                    <ul class="iconic-list">
-                        <li><i class="icon-pencil"></i><a href="#">Become an author</a></li>
-                        <li><i class="icon-random"></i><a href="#">Fork this story</a></li>
+                    <h3>Authors</h3>
+                    <ul class="iconic-summary">
+                        {{#each story.owners}}
+                        <li>
+                            <div class="icon">
+                                <img src="http://graph.facebook.com/{{this.domainid}}/picture?type=square" />
+                            </div>
+                            <div class="summary">
+                                <h3>{{this.name}}</h3>
+                                <p>Owner</p>
+                            </div>
+                        </li>
+                        {{/each}}
+                        {{#each story.authors}}
+                        <li>
+                            <div class="icon">
+                                <img src="http://graph.facebook.com/{{this.domainid}}/picture?type=square" />
+                            </div>
+                            <div class="summary">
+                                <h3>{{this.name}}</h3>
+                                <p></p>
+                            </div>
+                        </li>
+                        {{/each}}                        
                     </ul>
                 </div>
                 <div class="section">
-                    <h3>Comments <a class="standard" href="" style="">more...</a></h3>
-                    <ul class="iconic-summary">
+                    <h3>Contribute to this story?</h3>
+                    <ul class="iconic-list">
                         <li>
-                            <div class="icon">
-                                <img src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-snc4/157146_787499687_1418935023_q.jpg" />
+                            <i class="icon-pencil"></i><a class="author-request-btn" href="#">Become an author</a>
+                            <div class="author-request-form" style="padding-top: 4px; display:none">
+                                <form class="well">
+                                    <h4>Message to the story owner:</h4>
+                                    <p>
+                                        <textarea rows="4" style="width:90%"></textarea>
+                                        <br />
+                                        <a class="btn btn-small send" href="#">Send Request</a> <a href="#" class="cancel">cancel</a>
+                                    </p>
+                                </form>
                             </div>
-                            <div class="summary">
-                                <h2><a href="">Jeswin Pwong</a></h2>
-                                <p>
-                                    Charlotte Udziela, a retired community college instructor in Beaverton, Ore., who supports Mr. Obama, said she wished both campaigns
-                                </p>
-                            </div>
-                            <div class="clear"></div>
                         </li>
+                        <li><i class="icon-random"></i><a href="#">Fork this story</a></li>
                     </ul>
                 </div>
             </div>

@@ -15,32 +15,26 @@ class Story extends BaseModel
     }
 
 
-    @getById: (id, cb) =>
-        Story._database.findOne 'stories', { '_id': @_database.ObjectId(id) }, (err, result) =>
-            cb null, if result then new Story(result)
-
-
     
     @getByUserId: (userid, cb) =>
-        Story._database.find 'stories', { '$or': [ { 'owners._id': @_database.ObjectId(userid) }, { 'authors._id': @_database.ObjectId(userid) } ] }, (err, cursor) =>
-            cursor.toArray (err, stories) =>
-                cb err, stories
+        Story._models.User.getById userid, (err, user) =>
+            allStories = user.ownedStories.concat user.authoredStories
+            Story.getAll { '$or': ({ '_id' : @_database.ObjectId(id) } for id in allStories) }, cb
 
 
 
     getParts: (cb) =>
-        Story._database.find 'storyparts', { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, parts) =>
-            parts.toArray (err, items) =>
-                results = []
-                for partId in @parts
-                    part = (item for item in items when item._id.toString() == partId)[0]
-                    part = new Story._models.StoryPart part
-                    results.push part                    
-                cb null, results
+        Story._models.StoryPart.getAll { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, items) =>
+            results = []
+            for partId in @parts
+                part = (item for item in items when item._oid() == partId)[0]
+                part = new Story._models.StoryPart part
+                results.push part                    
+            cb null, results
 
 
 
-    save: (user, cb) =>
+    save: (userid, cb) =>
         allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
         allowedAttributes = {
             'img': 'src|width|height|alt',
@@ -50,8 +44,8 @@ class Story extends BaseModel
     
         @timestamp = new Date().getTime()
         if not @_id
-            @createdBy = user
-            @owners = [user]
+            @createdBy = userid
+            @owners = [userid]
             @authors = []
             @parts = []
             @published = false
@@ -59,23 +53,30 @@ class Story extends BaseModel
             
             super () =>
                 async.series [
+                        #Also modify the user, and add this to the stories owned.
+                        ((cb) =>
+                            Story._models.User.getById userid, (err, user) =>
+                                console.log @_oid()
+                                user.ownedStories.push @_oid()
+                                user.save () =>
+                                    cb())
                         ((cb) =>
                             part = new Story._models.StoryPart()
                             part.type = "HEADING"
                             part.size = 'H2'
                             part.value = "Sample Heading. Click to edit."
-                            @createPart part, null, user, cb),                        
+                            @createPart part, null, userid, cb),                        
                         ((cb) =>
                             part = new Story._models.StoryPart()
                             part.type = "TEXT"
                             part.value = "This is some sample content. Click to edit."
-                            @createPart part, [@parts[0]], user, cb)                        
+                            @createPart part, [@parts[0]], userid, cb)                        
                     ], () => cb()
                     
                 
         else
             #Only owners may save
-            if @isOwner user
+            if @isOwner userid
                 @title = sanitize @title, allowedTags, allowedAttributes
                 super cb
             else
@@ -83,7 +84,7 @@ class Story extends BaseModel
 
             
             
-    publish: (user, cb) =>
+    publish: (userid, cb) =>
         allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr'
         allowedAttributes = {
             'img': 'src|width|height|alt',
@@ -98,7 +99,7 @@ class Story extends BaseModel
             for part in parts                
                 @html += part.getHtml()
                 
-            @save user, cb
+            @save userid, cb
   
   
     ###
@@ -106,11 +107,11 @@ class Story extends BaseModel
             1. previousParts is a list of part-ids which occur before the newly added part. (Walked backwards in the DOM, if dom has #a, #b, #c, previousParts = [c,b,a])
                Insertion will happen at the first "previous-part" found in the @parts collection. 
     ###
-    createPart: (part, previousParts, user, cb) =>
+    createPart: (part, previousParts, userid, cb) =>
         #only authors may add a part
-        if @isAuthor user
-            part.author = user
-            part.story = @_id.toString()
+        if @isAuthor userid
+            part.author = userid
+            part.story = @_oid()
             part.timestamp = new Date().getTime()
             part.save () =>
                         
@@ -124,16 +125,16 @@ class Story extends BaseModel
                             insertAt = index + 1
                             break
                         
-                @parts.splice insertAt, 0, part._id.toString()                    
-                @save user, cb
+                @parts.splice insertAt, 0, part._oid()                    
+                @save userid, cb
 
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
 
     
     
-    updatePart: (part, user, cb) =>
-        if @isAuthor user
+    updatePart: (part, userid, cb) =>
+        if @isAuthor userid
             part.timestamp = new Date().getTime()
             part.save cb 
         else
@@ -141,68 +142,68 @@ class Story extends BaseModel
     
     
     
-    deletePart: (part, user, cb) =>
-        if @isAuthor user
+    deletePart: (part, userid, cb) =>
+        if @isAuthor userid
             index = @parts.indexOf part
             if index != -1
                 @parts.splice index, 1
-                @save user, cb
+                @save userid, cb
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
         
     
           
-    addAuthor: (author, user, cb) =>
-        if @isOwner user
+    addAuthor: (author, userid, cb) =>
+        if @isOwner userid
             #Confirm is not already an owner.
             if @authors.indexOf author == -1
                 @authors.push author
-                @save user, cb
+                @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
 
 
-    removeAuthor: (author, user, cb) =>
-        if @isOwner user
+    removeAuthor: (author, userid, cb) =>
+        if @isOwner userid
             #See if author is among authors
             if @authors.indexOf author > -1
                 @authors = (u for u in @authors when u != author)
-                @save user, cb
+                @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
 
 
-    addOwner: (owner, user, cb) =>
-        if @isOwner user
+    addOwner: (owner, userid, cb) =>
+        if @isOwner userid
             #Confirm is not already an owner.
             if @owners.indexOf owner == -1
                 @owners.push owner
-                @save user, cb
+                @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
 
 
-    removeOwner: (owner, user, cb) =>
-        if @isOwner user
+    removeOwner: (owner, userid, cb) =>
+        if @isOwner userid
             #See if owner is among owners.
             if @owners.indexOf owner > -1
                 @owners = (u for u in @owners when u != owner)
-                @save user, cb
+                @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
             
         
     
-    isAuthor: (user) =>
-        @owners.indexOf user > -1 or @authors.indexOf user > -1
+    isAuthor: (userid) =>
+        @owners.indexOf userid > -1 or @authors.indexOf userid > -1
             
             
         
-    isOwner: (user) =>
-        @owners.indexOf user > -1
+    isOwner: (userid) =>
+        @owners.indexOf userid > -1
         
         
     

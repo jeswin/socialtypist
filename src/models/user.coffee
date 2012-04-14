@@ -10,6 +10,13 @@ class User extends BaseModel
             onInsert: 'NEW_USER'
         }
     }
+    
+    save: (cb) =>
+        if not _id?
+            @ownedStories = []
+            @authoredStories = []
+            @cache = {}
+        super cb
 
 
 exports.User = User

@@ -55,6 +55,10 @@ class Database
                 completionCB(err)
                 
 
+    findById: (collectionName, id, cb) ->
+        @findOne collectionName, { _id: @ObjectId(id) }, cb
+
+
                 
     findOne: (collectionName, query, cb) ->        
         @find collectionName, query, (err, cursor) ->
