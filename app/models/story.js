@@ -26,6 +26,10 @@
 
       this.isAuthor = __bind(this.isAuthor, this);
 
+      this.getMessages = __bind(this.getMessages, this);
+
+      this.addMessage = __bind(this.addMessage, this);
+
       this.removeOwner = __bind(this.removeOwner, this);
 
       this.addOwner = __bind(this.addOwner, this);
@@ -179,7 +183,7 @@
     };
 
     Story.prototype.publish = function(userid, cb) {
-      var allowedAttributes, allowedTags,
+      var allowedAttributes, allowedTags, date, month, today, year,
         _this = this;
       allowedTags = 'a|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|h4|h5|h6|i|img|li|ol|p|pre|sup|sub|strong|strike|ul|br|hr';
       allowedAttributes = {
@@ -187,6 +191,17 @@
         'a': 'href',
         '*': 'title'
       };
+      if (!this.published) {
+        this.published = true;
+        today = new Date();
+        this.publishedTimestamp = today.getTime();
+        year = today.getYear() + 1900;
+        month = today.getMonth();
+        month = month < 10 ? '0' + month : month;
+        date = today.getDate();
+        date = date < 10 ? '0' + date : date;
+        this.publishedDate = year + month + date + '';
+      }
       this.cache.html = markdown('#' + this.title, true, allowedTags, allowedAttributes);
       return this.getParts(function(err, parts) {
         var part, _i, _len;
@@ -365,6 +380,24 @@
           message: 'You do not own this story. Cannot modify.'
         };
       }
+    };
+
+    Story.prototype.addMessage = function(text, userid, cb) {
+      var message,
+        _this = this;
+      message = new Story._models.Message();
+      message.text = text;
+      message.html = text;
+      message.story = this._oid();
+      return message.save(function() {
+        return cb();
+      });
+    };
+
+    Story.prototype.getMessages = function(cb) {
+      return Story._models.Message.getAll({
+        story: this._oid()
+      }, cb);
     };
 
     Story.prototype.isAuthor = function(userid) {

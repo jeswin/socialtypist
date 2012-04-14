@@ -3,7 +3,7 @@ body, div, p, ul, ol, h1, h2, h3, h4, h5, h6 { font-family: 'Bitter', serif; }
 
 form, form input, form select, form textarea, form button, form label, form submit, form p, form p label, a.action, a.btn,
         .form, .form p, .form span { font-family: 'Bitter', serif; }
-form .help-inline { font-size: 13px; color: #999; font-family: 'Bitter', serif; }
+.help-inline { font-size: 13px; color: #999; font-family: 'Bitter', serif; }
 a.action { margin-right: 8px; }
 a.action.unsafe { color: #880000 }
 ul.action-list li { float: left; padding-right: 12px; padding-bottom: 6px; }
@@ -16,6 +16,7 @@ ul.action-list li { float: left; padding-right: 12px; padding-bottom: 6px; }
 .small { font-size: 12px; }
 .standard { font-size: 14px; }
 .padded { margin-left: 12px !important }
+.light { color: #aaa }
 
 /* smaller screens lose background */
 .rpadded { margin-right: 28px !important }
@@ -57,7 +58,7 @@ ul.action-list li { float: left; padding-right: 12px; padding-bottom: 6px; }
 
 
 /* STORY */
-.story { padding-left: 12px; }
+.story { }
 .story h1, .story h2, .story h3, .story h4, .story h5, .story h6  { font-family: 'Abril Fatface', cursives } 
 .story h1 { font-size: 32px; margin-top: 16px; margin-bottom: 14px }
     .story h1:first-child { margin-top: 0 }

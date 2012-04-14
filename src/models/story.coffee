@@ -96,8 +96,20 @@ class Story extends BaseModel
             'a':   'href',
             '*':   'title'
         }
-              
-              
+        
+        if not @published
+            @published = true
+            
+            today = new Date()
+            @publishedTimestamp = today.getTime()
+            
+            year = today.getYear() + 1900
+            month = today.getMonth()
+            month = if month < 10 then '0' + month else month
+            date = today.getDate()
+            date = if date < 10 then '0' + date else date            
+            @publishedDate = year + month + date + ''
+                        
         #update cache.
         @cache.html = markdown '#' + @title, true, allowedTags, allowedAttributes
         @getParts (err, parts) =>        
@@ -105,6 +117,7 @@ class Story extends BaseModel
                 @cache.html += part.getHtml()
                 
             @save userid, cb
+  
   
   
     ###
@@ -205,8 +218,23 @@ class Story extends BaseModel
                 @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
-            
+
+
+    
+    addMessage: (text, userid, cb) =>
+        message = new Story._models.Message()
+        message.text = text
+        message.html = text
+        message.story = @_oid()
+        message.save () =>
+            cb()  
         
+    
+    
+    getMessages: (cb) =>
+        Story._models.Message.getAll { story: @_oid() }, cb
+    
+    
     
     isAuthor: (userid) =>
         @owners.indexOf userid > -1 or @authors.indexOf userid > -1

@@ -1,17 +1,36 @@
 class StoryEditView
 
     constructor: (@story, @editor) ->
+        @setupNav()
         @setActiveTab 'content'
         @renderRightPane()
+        
 
 
+    setupNav: () =>
+        @editor.find('.nav-settings a').click () => @setActiveTab 'settings'
+        @editor.find('.nav-content a').click () => @setActiveTab 'content'
+        @editor.find('.nav-messages a').click () => @setActiveTab 'messages'
+        @editor.find('.nav-history a').click () => @setActiveTab 'history'
+        
 
-    setActiveTab: (tab) ->       
+
+    setActiveTab: (tab) ->
+        @editor.find('.tab-content').html ''
+        @editor.find('.nav-pills li').removeClass 'active'
         switch tab
-            when 'settings' then new SettingsEditor @story, @editor
-            when 'content' then new ContentEditor @story, @editor
-            when 'messages' then new MessagePane @story, @editor
-            when 'history' then new HistoryPane @story, @editor
+            when 'settings'
+                @editor.find('.nav-pills li.nav-settings').addClass 'active'
+                new SettingsPane @story, @editor, @
+            when 'content' 
+                @editor.find('.nav-pills li.nav-content').addClass 'active'                
+                new ContentPane @story, @editor, @
+            when 'messages'
+                @editor.find('.nav-pills li.nav-messages').addClass 'active'                            
+                new MessagePane @story, @editor, @
+            when 'history' 
+                @editor.find('.nav-pills li.nav-history').addClass 'active'                            
+                new HistoryPane @story, @editor, @
 
 
 
@@ -22,7 +41,7 @@ class StoryEditView
 
 
     populateAuthors: () =>
-        authorsContainer = @editor.find('.authors')
+        authorsContainer = @editor.find('.rpane .authors')
         authorsContainer.html '
             <h3>Authors</h3>
             <ul class="iconic-summary"></ul>'
@@ -48,15 +67,127 @@ class StoryEditView
 
 
 
-class SettingsEditor
+class MessagePane
 
-    constructor: () ->
+    constructor: (@story, @editor, @view) ->
+        @editor.find('.tab-content').html('<div class="message-pane"></div>')
+        @container = @editor.find('.message-pane')
+        @container.html '
+            <p class="show-send-message">
+                <a href="#" class="btn">New message</a> <span class="padded help-inline">Message goes to all authors.</span>
+            </p>
+            <div class="add-message" style="display:none">
+                <form class="well">
+                    <p>
+                        <textarea rows="6" style="width:90%"></textarea>
+                        <br />
+                        <a class="btn btn-small send" href="#">Send Message</a> <a href="#" class="cancel">cancel</a>
+                    </p>
+                </form>
+            </div>'
+            
+        @container.find('.show-send-message a.btn').click @showAddMessage
+        @container.find('.add-message .btn.send').click @addMessage
+        @container.find('.add-message .cancel').click @cancelAddMessage
+                
+    
+    
+    showAddMessage: () =>
+        @container.find('.show-send-message').hide()
+        @container.find('.add-message textarea').val('')
+        @container.find('.add-message').show()
+        
+    
+    
+    cancelAddMessage: () =>
+        @container.find('.add-message').hide()
+        @container.find('.show-send-message').show()
+        
+        
+    
+    addMessage: () =>
+        alert 'sending'    
+    
+    
+    
+    
+    loadMessages: () =>
+        $.get "/stories/#{@story._id}/messages", (response) =>
+            
+        
+    
+
+
+class SettingsPane
+
+    constructor: (@story, @editor, @view) ->
+        @editor.find('.tab-content').html('<div class="settings-pane"></div>')
+        @container = @editor.find('.settings-pane')
+
+        #create a slug
+        slug = @story.title.toLowerCase().replace(/[^\w ]+/g,'').replace(/\ +/g,'-')
+
+        prefix = @story.publishedDate        
+        if not prefix
+            today = new Date()            
+            year = today.getYear() + 1900
+            month = today.getMonth()
+            month = if month < 10 then '0' + month else month
+            date = today.getDate()
+            date = if date < 10 then '0' + date else date                
+            prefix = year + month + date + ''
+            
+        
+        @container.html "
+            <form>
+                <p>
+                    <label>Tags</label>
+                    <input type=\"text\" value=\"#{@story.tags}\" class=\"span6\" />
+                </p>
+                <p>
+                    <label>Publish Url</label>
+                    <span class=\"light\">/#{prefix}/</span><input type=\"text\" value=\"#{slug}\" class=\"span6\" /><br />
+                </p>
+                <p>
+                    <a class=\"btn save\" href=\"#\">Save Settings</a>
+                </p>
+            </form>"
+            
+        owners = ({ type: 'owner', user: user } for user in @story.cache.owners)
+        authors = ({ type: 'author', user: user } for user in @story.cache.authors)
+        all = (u for u in (owners.concat authors) when u.user._id == @story.createdBy)
+
+        if all.length
+            @container.append "
+                <h3>Authors</h3>
+                <ul class=\"authors iconic-summary\">
+                </ul>"
+                    
+            authorsElem = @container.find('.authors')
+            for i in all
+                authorsElem.append "
+                    <li>
+                        <div class=\"icon\">
+                            <img src=\"http://graph.facebook.com/#{i.user.domainid}/picture?type=square\" />
+                        </div>
+                        <div class=\"summary\">
+                            <h3>#{i.user.name}</h3>
+                            <p class=\"author-actions\"></p>
+                        </div>
+                    </li>"
+                
+                actionElem = authorsElem.find('li p.author-actions').last()
+                if i.user._id != @story.createdBy                    
+                    if i.type == 'owner'
+                        actionElem.html '<a href="#" class="remove">remove</a>'
+                else
+                    actionElem.html 'owner'
         
 
-
-class ContentEditor
+class ContentPane
     
-    constructor: (@story, @editor) ->    
+    constructor: (@story, @editor, @view) ->
+        @editor.find('.tab-content').html('<div class="story"></div>')
         @container = $(@editor.find('.story'))
 
         @showdown = new Showdown.converter()
