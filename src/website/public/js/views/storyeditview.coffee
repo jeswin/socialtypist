@@ -84,12 +84,15 @@ class MessagePane
                         <a class="btn btn-small send" href="#">Send Message</a> <a href="#" class="cancel">cancel</a>
                     </p>
                 </form>
+            </div>
+            <div class="message-list">
             </div>'
             
         @container.find('.show-send-message a.btn').click @showAddMessage
         @container.find('.add-message .btn.send').click @addMessage
         @container.find('.add-message .cancel').click @cancelAddMessage
-                
+        
+        @loadMessages()
     
     
     showAddMessage: () =>
@@ -106,14 +109,48 @@ class MessagePane
         
     
     addMessage: () =>
-        alert 'sending'    
-    
+        $.post "/stories/#{@story._id}/messages", { message: @container.find('.add-message textarea').val() }, (err, response) =>
+            if response.success
+                @container.find('.add-message').hide()
+                @container.find('.show-send-message').show()
     
     
     
     loadMessages: () =>
         $.get "/stories/#{@story._id}/messages", (response) =>
+            @container.find('.message-list').html '<ul class="iconic-summary"></ul>'
+            messageListElem = @container.find('.message-list ul')
             
+            for message in response.messages
+                try
+                    if message.type is 'AUTHOR_ACCESS_REQUEST'
+                        messageListElem.append "
+                            <li>
+                                <div class=\"icon\">
+                                    <img src=\"http://graph.facebook.com/#{message.cache.from.domainid}/picture?type=square\" />
+                                </div>
+                                <div class=\"summary\">
+                                    <h2>#{message.cache.from.name}</h2>
+                                    <div class=\"text\">
+                                        #{message.content}
+                                    </div>
+                                </div>
+                            <li>"
+                    else
+                        messageListElem.append "
+                            <li>
+                                <div class=\"icon\">
+                                    <img src=\"http://graph.facebook.com/#{message.cache.from.domainid}/picture?type=square\" />
+                                </div>
+                                <div class=\"summary\">
+                                    <h2>#{message.cache.from.name}</h2>
+                                    <div class=\"text\">
+                                        #{message.content}
+                                    </div>
+                                </div>
+                            <li>"
+                catch err
+                            
         
     
 

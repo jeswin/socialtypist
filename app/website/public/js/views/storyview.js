@@ -27,11 +27,10 @@
 
     StoryView.prototype.sendAuthorRequest = function() {
       var _this = this;
-      return $.post("/stories/" + story + "/messages", {
-        type: 'AUTHOR_ACCESS_REQUEST',
+      return $.post("/stories/" + story + "/authorRequest", {
         message: $('.author-request-form textarea').val()
       }, function(response) {
-        debugger;        if (response.success) {
+        if (response.success) {
           $('.author-request-form').hide();
           $('.author-request-form textarea').val('');
           $('.author-request-btn').replaceWith('<span>Request sent to owner.</span>');

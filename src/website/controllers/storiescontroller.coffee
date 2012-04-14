@@ -70,19 +70,29 @@ class StoriesController extends controller.Controller
                 res.contentType 'json'
                 res.send { success: true }   
         
+    
+    messages: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.getMessages @getUserId(req), (err, messages) =>
+                res.contentType 'json'
+                res.send { success: true, messages: messages }
         
+        
+        
+    authorRequest: (req, res, next) =>        
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.addMessage 'AUTHOR_ACCESS_REQUEST', req.body.message, @getUserId(req), false, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+            
+                
         
     createMessage: (req, res, next) =>
-        message = new models.Message()
-        message.contents = req.body.message
-        message.story = req.params.storyid
-        message.type = req.body.type
-        message.from = @getUserId(req)
-        message.timestamp = new Date().getTime()
-        message.save () =>
-            res.contentType 'json'
-            res.send { success: true }
-        
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.addMessage 'MESSAGE', req.body.message, @getUserId(req), true, () =>
+                res.contentType 'json'
+                res.send { success: true }   
+
         
     
     createPart: (req, res, next) =>

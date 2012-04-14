@@ -136,6 +136,7 @@
         this.parts = [];
         this.published = false;
         this.title = sanitize(this.title, allowedTags, allowedAttributes);
+        this.forks = [];
         this.cache = {
           html: '',
           owners: [],
@@ -382,22 +383,41 @@
       }
     };
 
-    Story.prototype.addMessage = function(text, userid, cb) {
-      var message,
-        _this = this;
-      message = new Story._models.Message();
-      message.text = text;
-      message.html = text;
-      message.story = this._oid();
-      return message.save(function() {
-        return cb();
-      });
+    Story.prototype.addMessage = function(type, content, userid, checkAccess, cb) {
+      var _this = this;
+      if ((checkAccess && this.isAuthor(userid)) || !checkAccess) {
+        return Story._models.User.getById(userid, function(err, user) {
+          var message;
+          message = new Story._models.Message();
+          message.type = type;
+          message.content = content;
+          message.from = userid;
+          message.cache = {
+            from: {
+              domainid: user.domainid,
+              name: user.name,
+              location: user.location
+            }
+          };
+          message.story = _this._oid();
+          return message.save(function() {
+            return cb();
+          });
+        });
+      }
     };
 
-    Story.prototype.getMessages = function(cb) {
-      return Story._models.Message.getAll({
-        story: this._oid()
-      }, cb);
+    Story.prototype.getMessages = function(userid, cb) {
+      if (this.isAuthor(userid)) {
+        return Story._models.Message.getAll({
+          story: this._oid()
+        }, cb);
+      } else {
+        throw {
+          type: 'NOT_AUTHOR',
+          message: 'You are not an author on this story. Cannot fetch.'
+        };
+      }
     };
 
     Story.prototype.isAuthor = function(userid) {

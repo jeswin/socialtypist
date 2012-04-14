@@ -14,8 +14,7 @@ class StoryView
         
         
     sendAuthorRequest: () =>
-        $.post "/stories/#{story}/messages", { type: 'AUTHOR_ACCESS_REQUEST', message: $('.author-request-form textarea').val() }, (response) =>
-            debugger
+        $.post "/stories/#{story}/authorRequest", { message: $('.author-request-form textarea').val() }, (response) =>
             if response.success
                 $('.author-request-form').hide()
                 $('.author-request-form textarea').val('')

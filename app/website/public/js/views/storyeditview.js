@@ -115,10 +115,13 @@
                         <a class="btn btn-small send" href="#">Send Message</a> <a href="#" class="cancel">cancel</a>\
                     </p>\
                 </form>\
+            </div>\
+            <div class="message-list">\
             </div>');
       this.container.find('.show-send-message a.btn').click(this.showAddMessage);
       this.container.find('.add-message .btn.send').click(this.addMessage);
       this.container.find('.add-message .cancel').click(this.cancelAddMessage);
+      this.loadMessages();
     }
 
     MessagePane.prototype.showAddMessage = function() {
@@ -133,12 +136,39 @@
     };
 
     MessagePane.prototype.addMessage = function() {
-      return alert('sending');
+      var _this = this;
+      return $.post("/stories/" + this.story._id + "/messages", {
+        message: this.container.find('.add-message textarea').val()
+      }, function(err, response) {
+        if (response.success) {
+          _this.container.find('.add-message').hide();
+          return _this.container.find('.show-send-message').show();
+        }
+      });
     };
 
     MessagePane.prototype.loadMessages = function() {
       var _this = this;
-      return $.get("/stories/" + this.story._id + "/messages", function(response) {});
+      return $.get("/stories/" + this.story._id + "/messages", function(response) {
+        var message, messageListElem, _i, _len, _ref, _results;
+        _this.container.find('.message-list').html('<ul class="iconic-summary"></ul>');
+        messageListElem = _this.container.find('.message-list ul');
+        _ref = response.messages;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          message = _ref[_i];
+          try {
+            if (message.type === 'AUTHOR_ACCESS_REQUEST') {
+              _results.push(messageListElem.append("                            <li>                                <div class=\"icon\">                                    <img src=\"http://graph.facebook.com/" + message.cache.from.domainid + "/picture?type=square\" />                                </div>                                <div class=\"summary\">                                    <h2>" + message.cache.from.name + "</h2>                                    <div class=\"text\">                                        " + message.content + "                                    </div>                                </div>                            <li>"));
+            } else {
+              _results.push(messageListElem.append("                            <li>                                <div class=\"icon\">                                    <img src=\"http://graph.facebook.com/" + message.cache.from.domainid + "/picture?type=square\" />                                </div>                                <div class=\"summary\">                                    <h2>" + message.cache.from.name + "</h2>                                    <div class=\"text\">                                        " + message.content + "                                    </div>                                </div>                            <li>"));
+            }
+          } catch (err) {
+
+          }
+        }
+        return _results;
+      });
     };
 
     return MessagePane;

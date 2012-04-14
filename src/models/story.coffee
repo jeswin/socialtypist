@@ -50,6 +50,7 @@ class Story extends BaseModel
             @parts = []
             @published = false
             @title = sanitize @title, allowedTags, allowedAttributes
+            @forks = []
             @cache = {
                 html: '',
                 owners: [],
@@ -221,19 +222,26 @@ class Story extends BaseModel
 
 
     
-    addMessage: (text, userid, cb) =>
-        message = new Story._models.Message()
-        message.text = text
-        message.html = text
-        message.story = @_oid()
-        message.save () =>
-            cb()  
+    addMessage: (type, content, userid, checkAccess, cb) =>
+        if (checkAccess and @isAuthor userid) or not checkAccess
+            Story._models.User.getById userid, (err, user) =>
+                message = new Story._models.Message()            
+                message.type = type
+                message.content = content
+                message.from = userid
+                message.cache = { from: { domainid: user.domainid, name: user.name, location: user.location } }
+                message.story = @_oid()
+                message.save () =>
+                    cb()
         
     
     
-    getMessages: (cb) =>
-        Story._models.Message.getAll { story: @_oid() }, cb
-    
+    getMessages: (userid, cb) =>
+        if @isAuthor userid
+            Story._models.Message.getAll { story: @_oid() }, cb
+        else
+            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
+            
     
     
     isAuthor: (userid) =>

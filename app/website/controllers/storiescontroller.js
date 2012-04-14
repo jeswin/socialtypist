@@ -36,6 +36,10 @@
 
       this.createMessage = __bind(this.createMessage, this);
 
+      this.authorRequest = __bind(this.authorRequest, this);
+
+      this.messages = __bind(this.messages, this);
+
       this.update = __bind(this.update, this);
 
       this.editForm = __bind(this.editForm, this);
@@ -161,19 +165,39 @@
       });
     };
 
+    StoriesController.prototype.messages = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        return story.getMessages(_this.getUserId(req), function(err, messages) {
+          res.contentType('json');
+          return res.send({
+            success: true,
+            messages: messages
+          });
+        });
+      });
+    };
+
+    StoriesController.prototype.authorRequest = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        return story.addMessage('AUTHOR_ACCESS_REQUEST', req.body.message, _this.getUserId(req), false, function() {
+          res.contentType('json');
+          return res.send({
+            success: true
+          });
+        });
+      });
+    };
+
     StoriesController.prototype.createMessage = function(req, res, next) {
-      var message,
-        _this = this;
-      message = new models.Message();
-      message.contents = req.body.message;
-      message.story = req.params.storyid;
-      message.type = req.body.type;
-      message.from = this.getUserId(req);
-      message.timestamp = new Date().getTime();
-      return message.save(function() {
-        res.contentType('json');
-        return res.send({
-          success: true
+      var _this = this;
+      return models.Story.getById(req.params.storyid, function(err, story) {
+        return story.addMessage('MESSAGE', req.body.message, _this.getUserId(req), true, function() {
+          res.contentType('json');
+          return res.send({
+            success: true
+          });
         });
       });
     };

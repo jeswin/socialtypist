@@ -107,8 +107,16 @@
     return c.update;
   }));
 
+  app.get('/stories/:storyid/messages', findHandler('stories', function(c) {
+    return c.messages;
+  }));
+
   app.post('/stories/:storyid/messages', findHandler('stories', function(c) {
     return c.createMessage;
+  }));
+
+  app.post('/stories/:storyid/authorRequest', findHandler('stories', function(c) {
+    return c.authorRequest;
   }));
 
   app.post('/stories/:storyid/parts', findHandler('stories', function(c) {
