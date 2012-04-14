@@ -39,17 +39,17 @@
     };
 
     StoryEditView.prototype.populateAuthors = function() {
-      var authors, authorsContainer, owner, _i, _len, _ref, _results;
+      var author, authors, authorsContainer, authorsElem, _i, _len, _results;
       authorsContainer = this.editor.find('.authors');
       authorsContainer.html('\
             <h3>Authors</h3>\
             <ul class="iconic-summary"></ul>');
-      authors = authorsContainer.find('ul');
-      _ref = this.story.owners;
+      authorsElem = authorsContainer.find('ul');
+      authors = this.story.cache.owners.concat(this.story.cache.authors);
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        owner = _ref[_i];
-        _results.push(authors.append("                <li>                    <div class=\"icon\">                        <img src=\"http://graph.facebook.com/" + owner.domainid + "/picture?type=square\" />                    </div>                    <div class=\"summary\">                        <h3>" + owner.name + "</h3>                        <p>Owner</p>                    </div>                </li>"));
+      for (_i = 0, _len = authors.length; _i < _len; _i++) {
+        author = authors[_i];
+        _results.push(authorsElem.append("                <li>                    <div class=\"icon\">                        <img src=\"http://graph.facebook.com/" + author.domainid + "/picture?type=square\" />                    </div>                    <div class=\"summary\">                        <h3>" + author.name + "</h3>                        <p>Owner</p>                    </div>                </li>"));
       }
       return _results;
     };

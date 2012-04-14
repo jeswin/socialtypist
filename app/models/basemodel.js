@@ -12,7 +12,7 @@
     function BaseModel(params) {
       this.save = __bind(this.save, this);
 
-      this.oid = __bind(this.oid, this);
+      this._oid = __bind(this._oid, this);
 
       var meta;
       utils.extend(this, params);
@@ -60,7 +60,7 @@
       });
     };
 
-    BaseModel.prototype.oid = function() {
+    BaseModel.prototype._oid = function() {
       return this._id.toString();
     };
 

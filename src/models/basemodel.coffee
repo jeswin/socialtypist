@@ -29,7 +29,7 @@ class BaseModel
             cb err, if result then new meta.type(result)
 
 
-    oid: () =>
+    _oid: () =>
         @_id.toString()
         
         
@@ -50,7 +50,7 @@ class BaseModel
                 if cb?
                     cb err, r
         else
-            meta.type._database.update meta.collection, this, (err, r) =>
+            meta.type._database.update meta.collection, @, (err, r) =>
                 if cb?
                     cb err, r
 

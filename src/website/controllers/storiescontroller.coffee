@@ -23,8 +23,8 @@ class StoriesController extends controller.Controller
             if story
                 loginStatus = @getLoginStatus(req)
                 if loginStatus.loggedIn
-                    owners = (owner for owner in story.owners when owner == @getUserId())
-                    authors = (author for author in story.authors when author == @getUserId())
+                    owners = (owner for owner in story.owners when owner == @getUserId(req))
+                    authors = (author for author in story.authors when author == @getUserId(req))
                     isAuthor = owners.length > 0 or authors.length > 0
                 else
                     isAuthor = false
@@ -49,7 +49,7 @@ class StoriesController extends controller.Controller
         story = new models.Story()
         story.title = req.body.title
         story.tags = req.body.tags
-        story.save @getUserId(), () =>
+        story.save @getUserId(req), () =>
             res.redirect "/stories/#{story._id}/edit"
           
   
@@ -66,9 +66,10 @@ class StoriesController extends controller.Controller
         models.Story.getById req.params.storyid, (err, story) =>
             #Right now we only support updating the title.
             story.title = req.body.title
-            story.save @getUserId, () =>
+            story.save @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true }   
+        
         
         
     createMessage: (req, res, next) =>
@@ -76,7 +77,7 @@ class StoriesController extends controller.Controller
         message.contents = req.body.message
         message.story = req.params.storyid
         message.type = req.body.type
-        message.from = @getUserId()
+        message.from = @getUserId(req)
         message.timestamp = new Date().getTime()
         message.save () =>
             res.contentType 'json'
@@ -87,7 +88,7 @@ class StoriesController extends controller.Controller
     createPart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             part = @getPartFromBody(req.body)
-            story.createPart part, req.body.previousParts, @getUserId(), () =>
+            story.createPart part, req.body.previousParts, @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true, _id: part._id }
 
@@ -95,7 +96,7 @@ class StoriesController extends controller.Controller
 
     updatePart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.updatePart @getPartFromBody(req.body), @getUserId(), () =>
+            story.updatePart @getPartFromBody(req.body), @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true }   
                    
@@ -103,7 +104,7 @@ class StoriesController extends controller.Controller
 
     deletePart: (req, res, next) =>                    
         models.Story.getById req.params.storyid, (err, story) =>
-            story.deletePart req.params.partid, @getUserId(), () =>
+            story.deletePart req.params.partid, @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true }   
                 
@@ -111,7 +112,7 @@ class StoriesController extends controller.Controller
 
     publish: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
-            story.publish @getUserId(), () =>
+            story.publish @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true }   
           

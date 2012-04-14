@@ -25,9 +25,9 @@ class Controller
                 res.redirect '/login'
         
         
-    getUserId: () ->
+    getUserId: (req) ->
         if req.session.user?.username
-            return req.session.user._id
+            return req.session.user._id.toString()
         else
             throw { type: 'NOT_LOGGED_IN' }
         

@@ -12,7 +12,7 @@ class User extends BaseModel
     }
     
     save: (cb) =>
-        if not _id?
+        if not @_id?
             @ownedStories = []
             @authoredStories = []
             @cache = {}

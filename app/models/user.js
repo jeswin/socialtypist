@@ -28,7 +28,7 @@
     };
 
     User.prototype.save = function(cb) {
-      if (!(typeof _id !== "undefined" && _id !== null)) {
+      if (!(this._id != null)) {
         this.ownedStories = [];
         this.authoredStories = [];
         this.cache = {};

@@ -27,7 +27,7 @@ class Story extends BaseModel
         Story._models.StoryPart.getAll { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, items) =>
             results = []
             for partId in @parts
-                part = (item for item in items when item._oid() == partId)[0]
+                part = (item for item in items when item._id.toString() == partId)[0]
                 part = new Story._models.StoryPart part
                 results.push part                    
             cb null, results
@@ -50,14 +50,19 @@ class Story extends BaseModel
             @parts = []
             @published = false
             @title = sanitize @title, allowedTags, allowedAttributes
+            @cache = {
+                html: '',
+                owners: [],
+                authors: []
+            }
             
             super () =>
                 async.series [
                         #Also modify the user, and add this to the stories owned.
                         ((cb) =>
                             Story._models.User.getById userid, (err, user) =>
-                                console.log @_oid()
                                 user.ownedStories.push @_oid()
+                                @cache.owners.push user
                                 user.save () =>
                                     cb())
                         ((cb) =>
@@ -92,12 +97,12 @@ class Story extends BaseModel
             '*':   'title'
         }
               
-        @html = markdown '#' + @title, true, allowedTags, allowedAttributes
-
-        @getParts (err, parts) =>
-        
+              
+        #update cache.
+        @cache.html = markdown '#' + @title, true, allowedTags, allowedAttributes
+        @getParts (err, parts) =>        
             for part in parts                
-                @html += part.getHtml()
+                @cache.html += part.getHtml()
                 
             @save userid, cb
   
@@ -157,8 +162,10 @@ class Story extends BaseModel
         if @isOwner userid
             #Confirm is not already an owner.
             if @authors.indexOf author == -1
-                @authors.push author
-                @save userid, cb
+                Story._models.User.getById author, (err, user) =>
+                    @authors.push author
+                    @cache.authors.push user
+                    @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
@@ -169,6 +176,7 @@ class Story extends BaseModel
             #See if author is among authors
             if @authors.indexOf author > -1
                 @authors = (u for u in @authors when u != author)
+                @cache.authors = (u for u in @cache.authors when u._id.toString() != author)
                 @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
@@ -179,8 +187,10 @@ class Story extends BaseModel
         if @isOwner userid
             #Confirm is not already an owner.
             if @owners.indexOf owner == -1
-                @owners.push owner
-                @save userid, cb
+                Story._models.User.getById author, (err, user) =>                    
+                    @owners.push owner
+                    @cache.owners.push user
+                    @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
 
@@ -191,6 +201,7 @@ class Story extends BaseModel
             #See if owner is among owners.
             if @owners.indexOf owner > -1
                 @owners = (u for u in @owners when u != owner)
+                @cache.owners = (u for u in @cache.owners when u._id.toString() != owner)
                 @save userid, cb
         else
             throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
@@ -205,6 +216,10 @@ class Story extends BaseModel
     isOwner: (userid) =>
         @owners.indexOf userid > -1
         
+
+        
+    #TODO
+    recreateCache: () =>
         
     
 

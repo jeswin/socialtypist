@@ -20,7 +20,7 @@
         <div class="content-pane span8">
             <div class="story">
                 <div class="content">
-                    {{{story.html}}}
+                    {{{story.cache.html}}}
                 </div>
                 <hr />
                 <div class="comments">
@@ -42,7 +42,7 @@
                 <div class="section">
                     <h3>Authors</h3>
                     <ul class="iconic-summary">
-                        {{#each story.owners}}
+                        {{#each story.cache.owners}}
                         <li>
                             <div class="icon">
                                 <img src="http://graph.facebook.com/{{this.domainid}}/picture?type=square" />
@@ -53,7 +53,7 @@
                             </div>
                         </li>
                         {{/each}}
-                        {{#each story.authors}}
+                        {{#each story.cache.authors}}
                         <li>
                             <div class="icon">
                                 <img src="http://graph.facebook.com/{{this.domainid}}/picture?type=square" />

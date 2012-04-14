@@ -26,15 +26,18 @@ class StoryEditView
         authorsContainer.html '
             <h3>Authors</h3>
             <ul class="iconic-summary"></ul>'
-        authors = authorsContainer.find 'ul'
-        for owner in @story.owners
-            authors.append "
+        authorsElem = authorsContainer.find 'ul'
+        
+        authors = @story.cache.owners.concat @story.cache.authors
+        
+        for author in authors
+            authorsElem.append "
                 <li>
                     <div class=\"icon\">
-                        <img src=\"http://graph.facebook.com/#{owner.domainid}/picture?type=square\" />
+                        <img src=\"http://graph.facebook.com/#{author.domainid}/picture?type=square\" />
                     </div>
                     <div class=\"summary\">
-                        <h3>#{owner.name}</h3>
+                        <h3>#{author.name}</h3>
                         <p>Owner</p>
                     </div>
                 </li>"

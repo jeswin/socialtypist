@@ -77,7 +77,7 @@
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 owner = _ref[_i];
-                if (owner === this.getUserId()) _results.push(owner);
+                if (owner === this.getUserId(req)) _results.push(owner);
               }
               return _results;
             }).call(_this);
@@ -87,7 +87,7 @@
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 author = _ref[_i];
-                if (author === this.getUserId()) _results.push(author);
+                if (author === this.getUserId(req)) _results.push(author);
               }
               return _results;
             }).call(_this);
@@ -128,7 +128,7 @@
       story = new models.Story();
       story.title = req.body.title;
       story.tags = req.body.tags;
-      return story.save(this.getUserId(), function() {
+      return story.save(this.getUserId(req), function() {
         return res.redirect("/stories/" + story._id + "/edit");
       });
     };
@@ -152,7 +152,7 @@
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
         story.title = req.body.title;
-        return story.save(_this.getUserId, function() {
+        return story.save(_this.getUserId(req), function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -168,7 +168,7 @@
       message.contents = req.body.message;
       message.story = req.params.storyid;
       message.type = req.body.type;
-      message.from = this.getUserId();
+      message.from = this.getUserId(req);
       message.timestamp = new Date().getTime();
       return message.save(function() {
         res.contentType('json');
@@ -183,7 +183,7 @@
       return models.Story.getById(req.params.storyid, function(err, story) {
         var part;
         part = _this.getPartFromBody(req.body);
-        return story.createPart(part, req.body.previousParts, _this.getUserId(), function() {
+        return story.createPart(part, req.body.previousParts, _this.getUserId(req), function() {
           res.contentType('json');
           return res.send({
             success: true,
@@ -196,7 +196,7 @@
     StoriesController.prototype.updatePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.updatePart(_this.getPartFromBody(req.body), _this.getUserId(), function() {
+        return story.updatePart(_this.getPartFromBody(req.body), _this.getUserId(req), function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -208,7 +208,7 @@
     StoriesController.prototype.deletePart = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.deletePart(req.params.partid, _this.getUserId(), function() {
+        return story.deletePart(req.params.partid, _this.getUserId(req), function() {
           res.contentType('json');
           return res.send({
             success: true
@@ -220,7 +220,7 @@
     StoriesController.prototype.publish = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.publish(_this.getUserId(), function() {
+        return story.publish(_this.getUserId(req), function() {
           res.contentType('json');
           return res.send({
             success: true
