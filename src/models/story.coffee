@@ -23,6 +23,38 @@ class Story extends BaseModel
 
 
 
+    fork: (userid, cb) =>
+        forked = new Story(@)
+        delete forked._id
+        
+        forked.forkSource = @_oid()
+        forked.forkRoot = if @forkRoot? then @forkRoot else @_oid()
+
+        if forked.updatedBy
+            delete forked.updatedBy                     
+        if forked.published
+            delete forked.published
+            delete forked.publishedTimestamp
+            delete forked.publishedDate
+        
+        forked.save userid, () =>
+            #copy all the parts.
+            @getParts (err, parts) =>
+            
+                partSave = (part) =>
+                    (cb) =>
+                        part = new Story._models.StoryPart part
+                        delete part._id    
+                        part.createdBy = userid
+                        part.story = forked._oid()
+                        part.save () =>
+                            cb()
+            
+                async.series (partSave part for part in parts), () =>
+                    cb null, forked
+
+
+
     getParts: (cb) =>
         Story._models.StoryPart.getAll { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, items) =>
             results = []
@@ -42,13 +74,13 @@ class Story extends BaseModel
             '*':   'title'
         }
     
+    
         @timestamp = new Date().getTime()
-        if not @_id
+        if not @_id?
             @createdBy = userid
             @owners = [userid]
             @authors = []
             @parts = []
-            @published = false
             @title = sanitize @title, allowedTags, allowedAttributes
             @forks = []
             @cache = {
@@ -129,13 +161,11 @@ class Story extends BaseModel
     createPart: (part, previousParts, userid, cb) =>
         #only authors may add a part
         if @isAuthor userid
-            part.author = userid
+            part.createdBy = userid
             part.story = @_oid()
             part.timestamp = new Date().getTime()
-            part.save () =>
-                        
-                insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.
-                
+            part.save () =>                        
+                insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.                
                 if previousParts                    
                     for previous in previousParts
                         #Insert after the first found previous part.
@@ -154,6 +184,7 @@ class Story extends BaseModel
     
     updatePart: (part, userid, cb) =>
         if @isAuthor userid
+            part.updatedBy = userid
             part.timestamp = new Date().getTime()
             part.save cb 
         else
@@ -222,6 +253,14 @@ class Story extends BaseModel
 
 
     
+    getMessages: (userid, cb) =>
+        if @isAuthor userid
+            Story._models.Message.getAll { story: @_oid() }, cb
+        else
+            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
+            
+    
+    
     addMessage: (type, content, userid, checkAccess, cb) =>
         if (checkAccess and @isAuthor userid) or not checkAccess
             Story._models.User.getById userid, (err, user) =>
@@ -234,14 +273,6 @@ class Story extends BaseModel
                 message.save () =>
                     cb()
         
-    
-    
-    getMessages: (userid, cb) =>
-        if @isAuthor userid
-            Story._models.Message.getAll { story: @_oid() }, cb
-        else
-            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
-            
     
     
     isAuthor: (userid) =>

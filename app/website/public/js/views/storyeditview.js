@@ -116,7 +116,7 @@
                     </p>\
                 </form>\
             </div>\
-            <div class="message-list">\
+            <div class="message-list section">\
             </div>');
       this.container.find('.show-send-message a.btn').click(this.showAddMessage);
       this.container.find('.add-message .btn.send').click(this.addMessage);

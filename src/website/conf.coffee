@@ -7,6 +7,8 @@ module.exports = {
 		port: 27017
 	},
 	
-	deployment: 'DEBUG'
+	deployment: 'DEBUG',
+	
+	adminKey: 'secretkey123'
 }
 

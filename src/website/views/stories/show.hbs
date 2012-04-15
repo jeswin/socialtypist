@@ -12,7 +12,7 @@
         <a class="read" href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
         | <a class="your-stories" href="/stories/yours">Your stories</a>
-        | <a class="messages" href="/messages">Messages</a>        
+        <span class="live-messages">| <i class="icon-envelope"></i><a class="messages" href="/messages">32</a></span>
         {{/if}}
         | <a class="create-story" href="/stories/create">Write a story</a>
     </p>
@@ -66,7 +66,7 @@
                         {{/each}}                        
                     </ul>
                 </div>
-                <div class="section">
+                <div class="section contribute-section">
                     <h3>Contribute to this story?</h3>
                     <ul class="iconic-list">
                         <li>
@@ -82,7 +82,9 @@
                                 </form>
                             </div>
                         </li>
-                        <li><i class="icon-random"></i><a href="#">Fork this story</a></li>
+                        <li>
+                            <i class="icon-random"></i><a class="fork-story" href="#">Fork this story</a>
+                        </li>
                     </ul>
                 </div>
             </div>

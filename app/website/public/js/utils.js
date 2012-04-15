@@ -30,7 +30,11 @@
     _results = [];
     for (key in source) {
       val = source[key];
-      _results.push(target[key] = val);
+      if (typeof val !== "function") {
+        _results.push(target[key] = val);
+      } else {
+        _results.push(void 0);
+      }
     }
     return _results;
   };

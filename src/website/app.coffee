@@ -9,6 +9,7 @@ database = new (require '../common/database').Database(dbconf.default)
 models = new (require '../models').Models(dbconf.default)
 controllers = require './controllers'
 utils = require '../common/utils'
+ApplicationCache = require('../common/cache').ApplicationCache
 
 FACEBOOK_APP_ID = '259516830808506'
 FACEBOOK_SECRET = '4d0e2877593e04e2f4520105b91ca522'
@@ -37,6 +38,7 @@ findHandler = (name, getHandler) ->
         controller = switch name.toLowerCase()
             when 'home' then new controllers.HomeController()
             when 'stories' then new controllers.StoriesController()
+            when 'admin' then new controllers.AdminController()
             else throw 'Boom'
         getHandler(controller)(req, res, next)
 
@@ -55,6 +57,8 @@ app.get '/stories/:storyid', findHandler('stories', (c) -> c.show)
 app.get '/stories/:storyid/edit', findHandler('stories', (c) -> c.editForm)
 app.put '/stories/:storyid', findHandler('stories', (c) -> c.update)
 
+app.post '/stories/:storyid/fork', findHandler('stories', (c) -> c.fork)
+
 app.get '/stories/:storyid/messages', findHandler('stories', (c) -> c.messages)
 app.post '/stories/:storyid/messages', findHandler('stories', (c) -> c.createMessage)
 app.post '/stories/:storyid/authorRequest', findHandler('stories', (c) -> c.authorRequest)
@@ -66,6 +70,10 @@ app.del '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.delet
 app.post '/stories/:storyid/publish', findHandler('stories', (c) -> c.publish)
 app.post '/stories/:storyid/upload', findHandler('stories', (c) -> c.upload)
 
+
+app.get '/admin/addFeatured', findHandler('admin', (c) -> c.addFeatured)
+app.get '/admin/removeFeatured', findHandler('admin', (c) -> c.removeFeatured)
+app.get '/admin/reloadSettings', findHandler('admin', (c) -> c.reloadSettings)
 
 # handle all app errors - 500
 app.use (err, req, res, next) ->
@@ -85,5 +93,13 @@ app.use (req, res, next) ->
 
 host = process.argv[2]
 port = process.argv[3]
+
+
+#Load the cache
+global.cachingWhale = new ApplicationCache()
+database.find 'sitesettings', {}, (err, cursor) =>
+    cursor.toArray (err, items) =>
+        global.cachingWhale.add 'sitesettings', items
+
 
 app.listen(port)

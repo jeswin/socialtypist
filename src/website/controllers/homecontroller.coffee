@@ -1,12 +1,13 @@
 controller = require('./controller')
-everyauth = require 'everyauth'
 dbconf = require '../../models/dbconf'
+database = new (require '../../common/database').Database(dbconf.default)     
 models = new (require '../../models').Models(dbconf.default)
 querystring = require 'querystring'
 FaceBookClient = require('../../common/facebookclient').FaceBookClient
 
 FACEBOOK_APP_ID = '259516830808506'
 FACEBOOK_SECRET = '5402abb9c3003f767889e57e00f2b499'
+
 
 class HomeController extends controller.Controller
 
@@ -15,10 +16,14 @@ class HomeController extends controller.Controller
 
 
     index: (req, res, next) =>
-        res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req) }
+        sitesettings = global.cachingWhale.items.sitesettings
+        for item in sitesettings        
+            if item.type is 'FEATURED'                
+                res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req), featuredStory: item.content }
+
         
 
-
+    
     addSession: (req, res, next) =>
         if req.body.domain == 'facebook'        
             client = new FaceBookClient()            

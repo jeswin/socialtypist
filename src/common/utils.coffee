@@ -2,7 +2,8 @@ root = exports ? this
 
 extend = (target, source) ->
     for key, val of source
-        target[key] = val
+        if typeof val != "function"
+            target[key] = val
 
 isComposite = (dataType) ->
     return dataType != 'Text' && dataType != 'Number' && dataType != 'Boolean' && dataType != 'DateTime' && dataType != 'Selection' && dataType != 'HTML' && dataType != 'File'

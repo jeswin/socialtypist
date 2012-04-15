@@ -1,5 +1,4 @@
 controller = require('./controller')
-everyauth = require 'everyauth'
 dbconf = require '../../models/dbconf'
 models = new (require '../../models').Models(dbconf.default)
 fs = require 'fs'
@@ -12,11 +11,6 @@ class StoriesController extends controller.Controller
             @[fn] = @ensureSession @[fn]
 
 
-
-    index: (req, res, next) =>
-        res.render 'stories/index.hbs', { loginStatus: @getLoginStatus(req) }
-        
-    
     
     show: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
@@ -93,7 +87,16 @@ class StoriesController extends controller.Controller
                 res.contentType 'json'
                 res.send { success: true }   
 
-        
+    
+  
+    fork: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>
+            story.fork @getUserId(req), (err, forked) =>
+                console.log JSON.stringify forked
+                res.contentType 'json'
+                res.send { success: true, forkedStory: forked._id }   
+                
+          
     
     createPart: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>

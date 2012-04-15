@@ -16,4 +16,5 @@ this.SocialTypist.Utils.uniqueId = (length=16) ->
   
 this.SocialTypist.Utils.extend = (target, source) ->
     for key, val of source
-        target[key] = val  
+        if typeof val != "function"
+            target[key] = val  

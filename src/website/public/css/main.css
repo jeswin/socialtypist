@@ -36,7 +36,10 @@ ul.action-list li { float: left; padding-right: 12px; padding-bottom: 6px; }
 .container > p.main-links { margin-top: 44px; text-align: center; font-size: 24px; font-weight: lighter; font-family: 'Abril Fatface', cursives }
     .container > p.main-links a { padding: 6px; }
         .container > p.main-links a.selected { color: #666; }
-
+    .container > p.main-links .live-messages { }
+        .container > p.main-links .live-messages i { font-size: 20px; color: #800; padding-left: 8px; width: auto !important }
+        .container > p.main-links .live-messages a { color: #800 }
+    
 /* LOGIN */
 .container.top-menu { text-align: right; margin-top: 32px; } 
     .container.top-menu p { font-size: 20px; font-family: 'Abril Fatface', cursives }

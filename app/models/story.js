@@ -26,9 +26,9 @@
 
       this.isAuthor = __bind(this.isAuthor, this);
 
-      this.getMessages = __bind(this.getMessages, this);
-
       this.addMessage = __bind(this.addMessage, this);
+
+      this.getMessages = __bind(this.getMessages, this);
 
       this.removeOwner = __bind(this.removeOwner, this);
 
@@ -49,6 +49,8 @@
       this.save = __bind(this.save, this);
 
       this.getParts = __bind(this.getParts, this);
+
+      this.fork = __bind(this.fork, this);
       return Story.__super__.constructor.apply(this, arguments);
     }
 
@@ -78,6 +80,48 @@
             return _results;
           }).call(Story)
         }, cb);
+      });
+    };
+
+    Story.prototype.fork = function(userid, cb) {
+      var forked,
+        _this = this;
+      forked = new Story(this);
+      delete forked._id;
+      forked.forkSource = this._oid();
+      forked.forkRoot = this.forkRoot != null ? this.forkRoot : this._oid();
+      if (forked.updatedBy) delete forked.updatedBy;
+      if (forked.published) {
+        delete forked.published;
+        delete forked.publishedTimestamp;
+        delete forked.publishedDate;
+      }
+      return forked.save(userid, function() {
+        return _this.getParts(function(err, parts) {
+          var part, partSave;
+          partSave = function(part) {
+            return function(cb) {
+              part = new Story._models.StoryPart(part);
+              delete part._id;
+              part.createdBy = userid;
+              part.story = forked._oid();
+              return part.save(function() {
+                return cb();
+              });
+            };
+          };
+          return async.series((function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = parts.length; _i < _len; _i++) {
+              part = parts[_i];
+              _results.push(partSave(part));
+            }
+            return _results;
+          })(), function() {
+            return cb(null, forked);
+          });
+        });
       });
     };
 
@@ -129,12 +173,11 @@
         '*': 'title'
       };
       this.timestamp = new Date().getTime();
-      if (!this._id) {
+      if (!(this._id != null)) {
         this.createdBy = userid;
         this.owners = [userid];
         this.authors = [];
         this.parts = [];
-        this.published = false;
         this.title = sanitize(this.title, allowedTags, allowedAttributes);
         this.forks = [];
         this.cache = {
@@ -224,7 +267,7 @@
     Story.prototype.createPart = function(part, previousParts, userid, cb) {
       var _this = this;
       if (this.isAuthor(userid)) {
-        part.author = userid;
+        part.createdBy = userid;
         part.story = this._oid();
         part.timestamp = new Date().getTime();
         return part.save(function() {
@@ -253,6 +296,7 @@
 
     Story.prototype.updatePart = function(part, userid, cb) {
       if (this.isAuthor(userid)) {
+        part.updatedBy = userid;
         part.timestamp = new Date().getTime();
         return part.save(cb);
       } else {
@@ -383,6 +427,19 @@
       }
     };
 
+    Story.prototype.getMessages = function(userid, cb) {
+      if (this.isAuthor(userid)) {
+        return Story._models.Message.getAll({
+          story: this._oid()
+        }, cb);
+      } else {
+        throw {
+          type: 'NOT_AUTHOR',
+          message: 'You are not an author on this story. Cannot fetch.'
+        };
+      }
+    };
+
     Story.prototype.addMessage = function(type, content, userid, checkAccess, cb) {
       var _this = this;
       if ((checkAccess && this.isAuthor(userid)) || !checkAccess) {
@@ -404,19 +461,6 @@
             return cb();
           });
         });
-      }
-    };
-
-    Story.prototype.getMessages = function(userid, cb) {
-      if (this.isAuthor(userid)) {
-        return Story._models.Message.getAll({
-          story: this._oid()
-        }, cb);
-      } else {
-        throw {
-          type: 'NOT_AUTHOR',
-          message: 'You are not an author on this story. Cannot fetch.'
-        };
       }
     };
 

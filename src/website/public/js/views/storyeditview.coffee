@@ -85,7 +85,7 @@ class MessagePane
                     </p>
                 </form>
             </div>
-            <div class="message-list">
+            <div class="message-list section">
             </div>'
             
         @container.find('.show-send-message a.btn').click @showAddMessage
