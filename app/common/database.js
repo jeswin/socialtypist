@@ -126,7 +126,7 @@
       });
     };
 
-    Database.prototype.remove = function(collection, params, cb) {
+    Database.prototype.remove = function(collectionName, params, cb) {
       var _this = this;
       return this.execute(function(db, completionCB) {
         return db.collection(collectionName, function(err, collection) {
@@ -140,7 +140,7 @@
       });
     };
 
-    Database.prototype.removeById = function(collection, id, cb) {
+    Database.prototype.removeById = function(collectionName, id, cb) {
       var _this = this;
       return this.execute(function(db, completionCB) {
         return db.collection(collectionName, function(err, collection) {

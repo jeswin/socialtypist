@@ -67,7 +67,7 @@ class Database
         
 
 
-    remove: (collection, params, cb) =>
+    remove: (collectionName, params, cb) =>
         @execute (db, completionCB) =>
             db.collection collectionName, (err, collection) =>
                 collection.remove params, { safe:true }, (e, r) ->
@@ -75,7 +75,7 @@ class Database
                     completionCB(e)
 
                     
-    removeById: (collection, id, cb) =>
+    removeById: (collectionName, id, cb) =>
         @execute (db, completionCB) =>
             db.collection collectionName, (err, collection) =>
                 collection.remove { _id: @ObjectId(id) }, { safe:true }, (e, r) ->

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Social Typist</h1>
+        
+        <h2>Featured Stories</h2>
+        <p>
+            <form action="/admin/featured" method="POST">
+                <input type="text" name="storyid" />
+                <input type="submit" value="Add" />
+            </form>
+        </p>        
+        <ul>
+            {{#each items}}
+                <li>{{this.storyid}} <br />
+                {{this.title}} <a href="/admin/featured/{{this._id}}/remove">remove</a>
+            {{/each}}
+        </ul>
+    </body>
+</html>

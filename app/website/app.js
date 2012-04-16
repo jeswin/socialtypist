@@ -72,6 +72,11 @@
     };
   };
 
+  app.error(function(err, req, res, next) {
+    console.error(err);
+    return res.send('Fail Whale, yo.');
+  });
+
   app.get('/', findHandler('home', function(c) {
     return c.index;
   }));
@@ -148,11 +153,23 @@
     return c.upload;
   }));
 
-  app.get('/admin/addFeatured', findHandler('admin', function(c) {
+  app.get('/admin', findHandler('admin', function(c) {
+    return c.index;
+  }));
+
+  app.get('/admin/logout', findHandler('admin', function(c) {
+    return c.logout;
+  }));
+
+  app.get('/admin/featured', findHandler('admin', function(c) {
+    return c.featured;
+  }));
+
+  app.post('/admin/featured', findHandler('admin', function(c) {
     return c.addFeatured;
   }));
 
-  app.get('/admin/removeFeatured', findHandler('admin', function(c) {
+  app.get('/admin/featured/:id/remove', findHandler('admin', function(c) {
     return c.removeFeatured;
   }));
 

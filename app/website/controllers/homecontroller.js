@@ -37,21 +37,18 @@
     }
 
     HomeController.prototype.index = function(req, res, next) {
-      var item, sitesettings, _i, _len, _results;
+      var item, sitesettings, _i, _len;
       sitesettings = global.cachingWhale.items.sitesettings;
-      _results = [];
       for (_i = 0, _len = sitesettings.length; _i < _len; _i++) {
         item = sitesettings[_i];
         if (item.type === 'FEATURED') {
-          _results.push(res.render('home/index.hbs', {
+          res.render('home/index.hbs', {
             loginStatus: this.getLoginStatus(req),
             featuredStory: item.content
-          }));
-        } else {
-          _results.push(void 0);
+          });
+          return;
         }
       }
-      return _results;
     };
 
     HomeController.prototype.addSession = function(req, res, next) {

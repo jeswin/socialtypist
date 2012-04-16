@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Social Typist</h1>
+        <ul>
+            <li><a href="/admin/featured">Manage Featured</a></li>
+            <li><a href="/admin/reloadSettings">Reload Settings</a></li>            
+            <li><a href="/admin/logout">logout</a></li>     
+        </ul>
+        
+        <h2>Current items</h2>
+        <ul>
+        {{#each items}}
+            <li>{{this}}<li>
+        {{/each}}
+        </ul>
+    </body>
+</html>

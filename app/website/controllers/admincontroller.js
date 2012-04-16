@@ -28,68 +28,114 @@
 
       this.addFeatured = __bind(this.addFeatured, this);
 
+      this.featured = __bind(this.featured, this);
+
+      this.logout = __bind(this.logout, this);
+
+      this.index = __bind(this.index, this);
+
     }
 
-    AdminController.prototype.addFeatured = function(req, res, next) {
-      var _this = this;
+    AdminController.prototype.index = function(req, res, next) {
+      var item, items, _i, _len, _ref;
       if (req.query.adminKey !== conf.adminKey) {
         return res.send({
           success: false,
           message: 'BAD_KEY'
         });
       } else {
-        return models.Story.getById(req.query.storyid, function(err, story) {
-          var entry;
-          entry = {
-            type: 'FEATURED',
-            story: req.query.storyid,
-            content: story.cache.html
-          };
-          return database.insert('sitesettings', entry, function() {
-            return res.send({
-              success: true
+        req.session.admin = true;
+        items = [];
+        _ref = global.cachingWhale.items.sitesettings;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          item = _ref[_i];
+          items.push(JSON.stringify(item).substring(0, 250));
+        }
+        return res.render('admin/index.hbs', {
+          layout: false,
+          items: items
+        });
+      }
+    };
+
+    AdminController.prototype.logout = function(req, res, next) {
+      req.session.destroy();
+      return res.send('Logged out.');
+    };
+
+    AdminController.prototype.featured = function(req, res, next) {
+      var _this = this;
+      if (req.session.admin) {
+        return database.find('sitesettings', {}, function(err, cursor) {
+          return cursor.toArray(function(err, items) {
+            return res.render('admin/featured.hbs', {
+              items: items,
+              layout: false
             });
           });
         });
+      } else {
+        return res.send('No session.');
+      }
+    };
+
+    AdminController.prototype.addFeatured = function(req, res, next) {
+      var fn,
+        _this = this;
+      if (req.session.admin) {
+        fn = function() {
+          return models.Story.getById(req.body.storyid, function(err, story) {
+            var entry;
+            entry = {
+              type: 'FEATURED',
+              storyid: story._id.toString(),
+              title: story.title,
+              content: story.cache.html
+            };
+            return database.insert('sitesettings', entry, function() {
+              return res.redirect('/admin/featured');
+            });
+          });
+        };
+        return database.findOne('sitesettings', {
+          type: 'FEATURED',
+          storyid: req.body.storyid
+        }, function(err, item) {
+          if (item != null) {
+            return database.removeById('sitesettings', item._id, function() {
+              return fn();
+            });
+          } else {
+            return fn();
+          }
+        });
+      } else {
+        return res.send('No session.');
       }
     };
 
     AdminController.prototype.removeFeatured = function(req, res, next) {
       var _this = this;
-      if (req.query.adminKey !== conf.adminKey) {
-        return res.send({
-          success: false,
-          message: 'BAD_KEY'
+      if (req.session.admin) {
+        return database.removeById('sitesettings', req.params.id, function() {
+          return res.redirect('/admin/featured');
         });
       } else {
-        return database.remove('sitesettings', {
-          type: 'FEATURED',
-          story: req.query.storyid
-        }, function() {
-          return res.send({
-            success: true
-          });
-        });
+        return res.send('No session.');
       }
     };
 
     AdminController.prototype.reloadSettings = function(req, res, next) {
       var _this = this;
-      if (req.query.adminKey !== conf.adminKey) {
-        return res.send({
-          success: false,
-          message: 'BAD_KEY'
-        });
-      } else {
+      if (req.session.admin) {
         return database.find('sitesettings', {}, function(err, cursor) {
           return cursor.toArray(function(err, items) {
             global.cachingWhale.add('sitesettings', items);
-            return res.send({
-              success: true,
-              message: 'Reloaded settings.'
-            });
+            return res.send('Reloaded settings.');
           });
         });
+      } else {
+        return res.send('No session.');
       }
     };
 

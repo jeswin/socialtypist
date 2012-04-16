@@ -18,9 +18,9 @@ class HomeController extends controller.Controller
     index: (req, res, next) =>
         sitesettings = global.cachingWhale.items.sitesettings
         for item in sitesettings        
-            if item.type is 'FEATURED'                
+            if item.type is 'FEATURED'
                 res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req), featuredStory: item.content }
-
+                return
         
 
     

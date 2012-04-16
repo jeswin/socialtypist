@@ -42,6 +42,10 @@ findHandler = (name, getHandler) ->
             else throw 'Boom'
         getHandler(controller)(req, res, next)
 
+app.error (err, req, res, next) =>
+    console.error(err)
+    res.send('Fail Whale, yo.')
+
 #all routes go here.
 app.get '/', findHandler('home', (c) -> c.index)
 
@@ -70,9 +74,11 @@ app.del '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.delet
 app.post '/stories/:storyid/publish', findHandler('stories', (c) -> c.publish)
 app.post '/stories/:storyid/upload', findHandler('stories', (c) -> c.upload)
 
-
-app.get '/admin/addFeatured', findHandler('admin', (c) -> c.addFeatured)
-app.get '/admin/removeFeatured', findHandler('admin', (c) -> c.removeFeatured)
+app.get '/admin', findHandler('admin', (c) -> c.index)
+app.get '/admin/logout', findHandler('admin', (c) -> c.logout)
+app.get '/admin/featured', findHandler('admin', (c) -> c.featured)
+app.post '/admin/featured', findHandler('admin', (c) -> c.addFeatured)
+app.get '/admin/featured/:id/remove', findHandler('admin', (c) -> c.removeFeatured)
 app.get '/admin/reloadSettings', findHandler('admin', (c) -> c.reloadSettings)
 
 # handle all app errors - 500

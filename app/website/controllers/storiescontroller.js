@@ -97,7 +97,7 @@
             isAuthor: isAuthor
           });
         } else {
-          return res.render('Story does not exist.');
+          return res.send('Story does not exist.');
         }
       });
     };
@@ -147,7 +147,10 @@
     StoriesController.prototype.update = function(req, res, next) {
       var _this = this;
       return models.Story.getById(req.params.storyid, function(err, story) {
-        story.title = req.body.title;
+        if (req.body.title != null) story.title = req.body.title;
+        if (req.body.tags != null) story.tags = req.body.tags;
+        if (req.body.publishUrl != null) story.publishUrl = req.body.publishUrl;
+        if (req.body.description) story.description = req.body.descriptionv;
         return story.save(_this.getUserId(req), function() {
           res.contentType('json');
           return res.send({

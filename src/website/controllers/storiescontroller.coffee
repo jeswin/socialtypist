@@ -24,7 +24,7 @@ class StoriesController extends controller.Controller
                     isAuthor = false
                 res.render 'stories/show.hbs', { loginStatus: loginStatus, story: story, isAuthor: isAuthor }
             else
-                res.render 'Story does not exist.'
+                res.send 'Story does not exist.'
     
     
     
@@ -59,11 +59,20 @@ class StoriesController extends controller.Controller
     update: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             #Right now we only support updating the title.
-            story.title = req.body.title
+            if req.body.title?
+                story.title = req.body.title
+            if req.body.tags?
+                story.tags = req.body.tags
+            if req.body.publishUrl?                
+                story.publishUrl = req.body.publishUrl
+            if req.body.description
+                story.description = req.body.descriptionv
             story.save @getUserId(req), () =>
                 res.contentType 'json'
                 res.send { success: true }   
         
+    
+    
     
     messages: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>

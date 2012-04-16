@@ -197,7 +197,7 @@
         date = date < 10 ? '0' + date : date;
         prefix = year + month + date + '';
       }
-      this.container.html("            <form>                <p>                    <label>Tags</label>                    <input type=\"text\" value=\"" + this.story.tags + "\" class=\"span6\" />                </p>                <p>                    <label>Publish Url</label>                    <span class=\"light\">/" + prefix + "/</span><input type=\"text\" value=\"" + slug + "\" class=\"span6\" /><br />                </p>                <p>                    <a class=\"btn save\" href=\"#\">Save Settings</a>                </p>            </form>");
+      this.container.html("            <form>                <p>                    <label>Tags</label>                    <input type=\"text\" value=\"" + this.story.tags + "\" class=\"span6\" />                </p>                <p>                    <label>Url for your story</label>                    <span class=\"light\">socialtypist.com/" + prefix + "/</span><input type=\"text\" value=\"" + slug + "\" class=\"span6\" /><br />                </p>                <p>                    <label>Description (optional)</label>                    <textarea class=\"span6\" rows=\"6\"></textarea>                </p>                <p>                    <a class=\"btn save\" href=\"#\">Save Settings</a>                </p>            </form>            <hr />");
       owners = (function() {
         var _i, _len, _ref, _results;
         _ref = this.story.cache.owners;

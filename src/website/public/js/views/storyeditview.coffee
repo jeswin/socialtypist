@@ -182,13 +182,18 @@ class SettingsPane
                     <input type=\"text\" value=\"#{@story.tags}\" class=\"span6\" />
                 </p>
                 <p>
-                    <label>Publish Url</label>
-                    <span class=\"light\">/#{prefix}/</span><input type=\"text\" value=\"#{slug}\" class=\"span6\" /><br />
+                    <label>Url for your story</label>
+                    <span class=\"light\">socialtypist.com/#{prefix}/</span><input type=\"text\" value=\"#{slug}\" class=\"span6\" /><br />
+                </p>
+                <p>
+                    <label>Description (optional)</label>
+                    <textarea class=\"span6\" rows=\"6\"></textarea>
                 </p>
                 <p>
                     <a class=\"btn save\" href=\"#\">Save Settings</a>
                 </p>
-            </form>"
+            </form>
+            <hr />"
             
         owners = ({ type: 'owner', user: user } for user in @story.cache.owners)
         authors = ({ type: 'author', user: user } for user in @story.cache.authors)
