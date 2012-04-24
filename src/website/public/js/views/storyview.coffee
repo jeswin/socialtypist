@@ -44,7 +44,7 @@ class StoryView
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <a href="#" class="btn btn-primary">Fork</a>
+                    <a href="#" class="btn">Fork</a>
                     <a href="#">cancel</a>
                 </div>
             </div>'

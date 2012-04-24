@@ -54,6 +54,10 @@ class Story extends BaseModel
                     cb null, forked
 
 
+    getShortSummary: () =>
+        @summary ? ''
+        
+
 
     getParts: (cb) =>
         Story._models.StoryPart.getAll { '$or': ({ _id: Story._database.ObjectId(partId) } for partId in @parts)  }, (err, items) =>
@@ -255,7 +259,8 @@ class Story extends BaseModel
     
     getMessages: (userid, cb) =>
         if @isAuthor userid
-            Story._models.Message.getAll { story: @_oid() }, cb
+            Story._models.Message.getAll { story: @_oid() }, (err, messages) =>
+                cb err, messages?.reverse()
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
             

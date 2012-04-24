@@ -30,6 +30,8 @@ class StoriesController extends controller.Controller
     
     yours: (req, res, next) =>
         models.Story.getByUserId @getUserId, (err, stories) =>
+            for story in stories
+                story.shortSummary = story.summary
             res.render 'stories/yours.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
     
     
@@ -42,6 +44,7 @@ class StoriesController extends controller.Controller
     create: (req, res, next) =>
         story = new models.Story()
         story.title = req.body.title
+        story.summary = req.body.summary
         story.tags = req.body.tags
         story.save @getUserId(req), () =>
             res.redirect "/stories/#{story._id}/edit"
@@ -59,18 +62,10 @@ class StoriesController extends controller.Controller
     update: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             #Right now we only support updating the title.
-            if req.body.title?
-                story.title = req.body.title
-            if req.body.tags?
-                story.tags = req.body.tags
-            if req.body.publishUrl?                
-                story.publishUrl = req.body.publishUrl
-            if req.body.description
-                story.description = req.body.descriptionv
+            @setValues story, req.body, ['title', 'tags', 'slug', 'summary']
             story.save @getUserId(req), () =>
                 res.contentType 'json'
-                res.send { success: true }   
-        
+                res.send { success: true }          
     
     
     
@@ -86,10 +81,18 @@ class StoriesController extends controller.Controller
         models.Story.getById req.params.storyid, (err, story) =>
             story.addMessage 'AUTHOR_ACCESS_REQUEST', req.body.message, @getUserId(req), false, () =>
                 res.contentType 'json'
-                res.send { success: true }   
-            
+                res.send { success: true }
                 
-        
+                
+                
+    addAuthor: (req, res, next) =>
+        models.Story.getById req.params.storyid, (err, story) =>        
+            story.addAuthor @getValue(req.body, 'author'), @getUserId(req), () =>
+                res.contentType 'json'
+                res.send { success: true }               
+            
+            
+       
     createMessage: (req, res, next) =>
         models.Story.getById req.params.storyid, (err, story) =>
             story.addMessage 'MESSAGE', req.body.message, @getUserId(req), true, () =>

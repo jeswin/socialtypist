@@ -67,6 +67,8 @@ app.get '/stories/:storyid/messages', findHandler('stories', (c) -> c.messages)
 app.post '/stories/:storyid/messages', findHandler('stories', (c) -> c.createMessage)
 app.post '/stories/:storyid/authorRequest', findHandler('stories', (c) -> c.authorRequest)
 
+app.post '/stories/:storyid/authors', findHandler('stories', (c) -> c.addAuthor)
+
 app.post '/stories/:storyid/parts', findHandler('stories', (c) -> c.createPart)
 app.put '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.updatePart)
 app.del '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.deletePart)
@@ -106,6 +108,7 @@ global.cachingWhale = new ApplicationCache()
 database.find 'sitesettings', {}, (err, cursor) =>
     cursor.toArray (err, items) =>
         global.cachingWhale.add 'sitesettings', items
+        console.log 'Loaded site settings.'
 
 
 app.listen(port)

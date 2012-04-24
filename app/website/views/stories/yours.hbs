@@ -8,16 +8,19 @@
     </p>
     <div class="content-area row">
         <div class="content-pane span8">
-            <div class="story">
-                <div class="content">
-                    {{#if stories}}
-                    <ul>
-                        {{#each stories}}
-                            <li><a href="/stories/{{this._id}}">{{this.title}}</a></li>
-                        {{/each}}
-                    </ul>
-                    {{/if}}         
-                </div>
+            <div class="content">
+                {{#if stories}}
+                <ul class="simple-list">
+                    {{#each stories}}
+                        <li>
+                            <h4><a href="/stories/{{this._id}}">{{this.title}}</a></h4>
+                            <p>
+                                {{this.shortSummary}}
+                            <p>
+                        </li>
+                    {{/each}}
+                </ul>
+                {{/if}}         
             </div>
         </div>
         <div class="content-pane span4">

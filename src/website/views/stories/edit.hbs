@@ -1,4 +1,9 @@
 <script src="/public/js/views/storyeditview.js"></script>
+<script src="/public/js/views/storyeditview/settingspane.js"></script>
+<script src="/public/js/views/storyeditview/contentpane.js"></script>
+<script src="/public/js/views/storyeditview/messagespane.js"></script>
+<script src="/public/js/views/storyeditview/historypane.js"></script>
+<script src="/public/js/views/storyeditview/forkspane.js"></script>
 <script>
     var story = {{{story}}};
     $(document).ready(function() {
@@ -11,23 +16,26 @@
         <a class="read" href="#">Read stories</a>
         | <a class="your-stories" href="/stories/yours">Your stories</a>
         | <a class="messages" href="/messages">Messages</a>        
-        | <a class="create-story selected" href="/stories/create">Write a story</a>
+        | <a class="create-story" href="/stories/create">Write a story</a>
     </p>
     <div class="content-area row" id="story-editor">
         <div class="content-pane lpane span8">
         <ul class="nav nav-pills">
             <li class="nav-settings">
-                <a href="#">Story Settings</a>
+                <a href="#nav-settings">Settings</a>
             </li>
             <li class="active nav-content">
-                <a href="#">Content</a>
+                <a href="#nav-content">Content</a>
             </li>
             <li class="nav-messages">
-                <a href="#">Messages</a>
+                <a href="#nav-messages">Messages</a>
             </li>
             <li class="nav-history">
-                <a href="#">History</a>
+                <a href="#nav-history">History</a>
             </li>
+            <li class="nav-forks">
+                <a href="#nav-forks">Forks</a>
+            </li>            
         </ul>
         <hr />
         <div class="tab-content"></div>        
