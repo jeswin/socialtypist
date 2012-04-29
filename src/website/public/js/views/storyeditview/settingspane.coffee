@@ -43,7 +43,10 @@ class SettingsPane
         owners = ({ type: 'owner', user: user } for user in @story.cache.owners)
         authors = ({ type: 'author', user: user } for user in @story.cache.authors)
         all = owners.concat authors
-        #all = (u for u in (owners.concat authors) when u.user._id == @story.createdBy)
+        
+        #is the current user an owner?
+        isOwner = owners.some (i) -> i.user._id == userid
+        isCreator = @story.createdBy == userid
 
         if all.length
             @container.append "
@@ -64,17 +67,26 @@ class SettingsPane
                         </div>
                     </li>"
                 
+                #if the current user is an owner, give the option to remove an author.
                 actionElem = authorsElem.find('li p.author-actions').last()
-                if i.user._id != @story.createdBy                    
-                    if i.type == 'owner'
-                        actionElem.html '<a href="#" class="remove">remove</a>'
-                else
-                    actionElem.html 'owner'
+                #You can't do anything about the creator.
+                if i.user._id != @story.createdBy
+                    if isCreator or isOwner
+                        utype = if i.type == 'owner' then 'Owner' else ''
+                        actionElem.html "#{utype} <a href=\"#\" class=\"remove\">remove</a>"
+                    actionElem.find('.remove').click () =>
+                        $.delete_ "/stories/#{@story._id}/authors/#{i.user._id}", () =>
+                            alert 'deleted'
         
         
     saveSettings: () =>
         onResponse = () =>
-            alert 'saved'
+            $('form.story-settings-form .alert').remove()
+            $('form.story-settings-form').prepend "
+                <div class=\"alert alert-success\">
+                    <button class=\"close\" data-dismiss=\"alert\">×</button>
+                    Settings were saved.
+                </div>"
             
         tags = $('.story-settings-form .tags').val()
         summary = $('.story-settings-form .summary').val()

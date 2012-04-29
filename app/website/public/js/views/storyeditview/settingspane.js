@@ -8,7 +8,8 @@
     SettingsPane.name = 'SettingsPane';
 
     function SettingsPane(story, editor, view) {
-      var actionElem, all, authors, authorsElem, date, i, month, owners, prefix, slug, today, user, year, _i, _len, _ref;
+      var actionElem, all, authors, authorsElem, date, i, isCreator, isOwner, month, owners, prefix, slug, today, user, utype, year, _i, _len, _ref,
+        _this = this;
       this.story = story;
       this.editor = editor;
       this.view = view;
@@ -56,6 +57,10 @@
         return _results;
       }).call(this);
       all = owners.concat(authors);
+      isOwner = owners.some(function(i) {
+        return i.user._id === userid;
+      });
+      isCreator = this.story.createdBy === userid;
       if (all.length) {
         this.container.append("                <h3>Authors</h3>                <ul class=\"authors iconic-summary\">                </ul>");
         authorsElem = this.container.find('.authors');
@@ -64,11 +69,15 @@
           authorsElem.append("                    <li>                        <div class=\"icon\">                            <img src=\"http://graph.facebook.com/" + i.user.domainid + "/picture?type=square\" />                        </div>                        <div class=\"summary\">                            <h3>" + i.user.name + "</h3>                            <p class=\"author-actions\"></p>                        </div>                    </li>");
           actionElem = authorsElem.find('li p.author-actions').last();
           if (i.user._id !== this.story.createdBy) {
-            if (i.type === 'owner') {
-              actionElem.html('<a href="#" class="remove">remove</a>');
+            if (isCreator || isOwner) {
+              utype = i.type === 'owner' ? 'Owner' : '';
+              actionElem.html("" + utype + " <a href=\"#\" class=\"remove\">remove</a>");
             }
-          } else {
-            actionElem.html('owner');
+            actionElem.find('.remove').click(function() {
+              return $.delete_("/stories/" + _this.story._id + "/authors/" + i.user._id, function() {
+                return alert('deleted');
+              });
+            });
           }
         }
       }
@@ -78,7 +87,8 @@
       var onResponse, slug, summary, tags,
         _this = this;
       onResponse = function() {
-        return alert('saved');
+        $('form.story-settings-form .alert').remove();
+        return $('form.story-settings-form').prepend("                <div class=\"alert alert-success\">                    <button class=\"close\" data-dismiss=\"alert\">×</button>                    Settings were saved.                </div>");
       };
       tags = $('.story-settings-form .tags').val();
       summary = $('.story-settings-form .summary').val();

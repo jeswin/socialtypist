@@ -5,13 +5,13 @@ class Controller
         if req.session.user?.username
             status = {
                 loggedIn: true,
-                js: "window.authProvider = '#{req.session.authProvider}'; window.loggedIn = true; window.username = '#{req.session.user.username}';",
+                js: "window.authProvider = '#{req.session.authProvider}'; window.loggedIn = true; window.username = '#{req.session.user.username}'; window.userid = '#{req.session.user._id}';",
                 header: "<a class=\"logoutLink\" href=\"#\">Logout</a> <span class=\"username\">#{req.session.user.username}</span>"
             }
         else
             status = {
                 loggedIn: false,
-                js: "window.loggedIn = false; window.username = null;",
+                js: "window.loggedIn = false; window.username = null;window.userid = null;",
                 header: '<img src="/public/images/facebook.png" /><a class="fbLoginLink" href="#">Login</a>' #We support only facebook now.
             }
         return status

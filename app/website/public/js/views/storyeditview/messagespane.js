@@ -88,13 +88,21 @@
               }
               messageListElem.append("                            <li>                                <div class=\"icon\">                                    <img src=\"http://graph.facebook.com/" + message.cache.from.domainid + "/picture?type=square\" />                                </div>                                <div class=\"summary\">                                    <h2 style=\"display:inline\">" + message.cache.from.name + "</h2> wants to co-author this story.                                         <a href=\"#\" class=\"approve-author\">Approve</a> or <a href=\"#\" class=\"unsafe reject-author\">reject</a>?                                    " + _content + "                                </div>                            </li>");
               author = message.from;
-              _results.push(messageListElem.children('li').last().find('.approve-author').click(function() {
+              messageListElem.children('li').last().find('.approve-author').click(function() {
                 $.post("/stories/" + _this.story._id + "/authors", {
                   author: author
                 }, function(response) {
                   if (response.success) {
-                    return _this.loadMessages();
+                    return $.delete_("/stories/" + _this.story._id + "/messages/" + message._id, function(response) {
+                      return _this.loadMessages();
+                    });
                   }
+                });
+                return false;
+              });
+              _results.push(messageListElem.children('li').last().find('.reject-author').click(function() {
+                $.delete_("/stories/" + _this.story._id + "/messages/" + message._id, function(response) {
+                  return _this.loadMessages();
                 });
                 return false;
               }));

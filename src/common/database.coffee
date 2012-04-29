@@ -32,7 +32,7 @@ class Database
     update: (collectionName, document, cb) =>
         @execute (db, completionCB) =>
             db.collection collectionName, (err, collection) =>
-                collection.update { _id: document._id }, document, { safe:true }, (e, r) =>
+                collection.update { _id: @ObjectId(document._id) }, document, { safe:true }, (e, r) =>
                     cb(e, r)
                     completionCB(e)
 

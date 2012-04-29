@@ -73,7 +73,7 @@
       return this.execute(function(db, completionCB) {
         return db.collection(collectionName, function(err, collection) {
           return collection.update({
-            _id: document._id
+            _id: _this.ObjectId(document._id)
           }, document, {
             safe: true
           }, function(e, r) {

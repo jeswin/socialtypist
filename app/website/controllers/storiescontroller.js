@@ -36,9 +36,13 @@
 
       this.createMessage = __bind(this.createMessage, this);
 
+      this.removeAuthor = __bind(this.removeAuthor, this);
+
       this.addAuthor = __bind(this.addAuthor, this);
 
       this.authorRequest = __bind(this.authorRequest, this);
+
+      this.deleteMessage = __bind(this.deleteMessage, this);
 
       this.messages = __bind(this.messages, this);
 
@@ -110,7 +114,7 @@
 
     StoriesController.prototype.yours = function(req, res, next) {
       var _this = this;
-      return models.Story.getByUserId(this.getUserId, function(err, stories) {
+      return models.Story.getByUserId(this.getUserId(req), function(err, stories) {
         var story, _i, _len;
         for (_i = 0, _len = stories.length; _i < _len; _i++) {
           story = stories[_i];
@@ -133,17 +137,23 @@
       var story,
         _this = this;
       story = new models.Story();
-      story.title = req.body.title;
-      story.summary = req.body.summary;
-      story.tags = req.body.tags;
+      story.title = this.getValue(req.body, 'title');
+      story.summary = this.getValue(req.body, 'summary');
+      story.tags = this.getValue(req.body, 'tags');
       return story.save(this.getUserId(req), function() {
-        return res.redirect("/stories/" + story._id + "/edit");
+        var change;
+        change = new models.Change();
+        change.story = story._oid();
+        change.type = "NEW_STORY";
+        return change.save(function() {
+          return res.redirect("/stories/" + story._id + "/edit");
+        });
       });
     };
 
     StoriesController.prototype.editForm = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.getParts(function(err, parts) {
           story._objects = {
             parts: parts
@@ -158,12 +168,22 @@
 
     StoriesController.prototype.update = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
+        var oldStory;
+        oldStory = story;
         _this.setValues(story, req.body, ['title', 'tags', 'slug', 'summary']);
         return story.save(_this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+          var change;
+          change = new models.Change();
+          change.story = story._oid();
+          change.type = "UPDATE_STORY";
+          change.oldValue = oldStory;
+          change.newValue = story;
+          return change.save(function() {
+            res.contentType('json');
+            return res.send({
+              success: true
+            });
           });
         });
       });
@@ -171,7 +191,7 @@
 
     StoriesController.prototype.messages = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.getMessages(_this.getUserId(req), function(err, messages) {
           res.contentType('json');
           return res.send({
@@ -182,9 +202,21 @@
       });
     };
 
+    StoriesController.prototype.deleteMessage = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
+        return story.deleteMessage(req.params.messageid, _this.getUserId(req), function(err, x) {
+          res.contentType('json');
+          return res.send({
+            success: true
+          });
+        });
+      });
+    };
+
     StoriesController.prototype.authorRequest = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.addMessage('AUTHOR_ACCESS_REQUEST', req.body.message, _this.getUserId(req), false, function() {
           res.contentType('json');
           return res.send({
@@ -196,11 +228,37 @@
 
     StoriesController.prototype.addAuthor = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.addAuthor(_this.getValue(req.body, 'author'), _this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+          var change;
+          change = new models.Change();
+          change.story = story._oid();
+          change.type = "ADD_AUTHOR";
+          change.author = _this.getValue(req.body, 'author');
+          return change.save(function() {
+            res.contentType('json');
+            return res.send({
+              success: true
+            });
+          });
+        });
+      });
+    };
+
+    StoriesController.prototype.removeAuthor = function(req, res, next) {
+      var _this = this;
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
+        return story.removeAuthor(_this.getValue(req.params, 'author'), _this.getUserId(req), function() {
+          var change;
+          change = new models.Change();
+          change.story = story._oid();
+          change.type = "REMOVE_AUTHOR";
+          change.author = _this.getValue(req.body, 'author');
+          return change.save(function() {
+            res.contentType('json');
+            return res.send({
+              success: true
+            });
           });
         });
       });
@@ -208,7 +266,7 @@
 
     StoriesController.prototype.createMessage = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.addMessage('MESSAGE', req.body.message, _this.getUserId(req), true, function() {
           res.contentType('json');
           return res.send({
@@ -220,9 +278,8 @@
 
     StoriesController.prototype.fork = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.fork(_this.getUserId(req), function(err, forked) {
-          console.log(JSON.stringify(forked));
           res.contentType('json');
           return res.send({
             success: true,
@@ -234,14 +291,22 @@
 
     StoriesController.prototype.createPart = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         var part;
         part = _this.getPartFromBody(req.body);
         return story.createPart(part, req.body.previousParts, _this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true,
-            _id: part._id
+          var change;
+          change = new models.Change();
+          change.story = story._oid();
+          change.type = "CREATE_PART";
+          change.user = _this.getUserId(req);
+          change.part = part;
+          return change.save(function() {
+            res.contentType('json');
+            return res.send({
+              success: true,
+              _id: part._id
+            });
           });
         });
       });
@@ -249,11 +314,26 @@
 
     StoriesController.prototype.updatePart = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.updatePart(_this.getPartFromBody(req.body), _this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
+        return story.getPart(_this.getValue(req.params, 'partid'), function(err, part) {
+          var newValue, oldValue;
+          oldValue = part;
+          newValue = _this.getPartFromBody(req.body);
+          newValue._id = part._id;
+          return story.updatePart(newValue, _this.getUserId(req), function() {
+            var change;
+            change = new models.Change();
+            change.story = story._oid();
+            change.type = "UPDATE_PART";
+            change.user = _this.getUserId(req);
+            change.oldValue = oldValue;
+            change.newValue = newValue;
+            return change.save(function() {
+              res.contentType('json');
+              return res.send({
+                success: true
+              });
+            });
           });
         });
       });
@@ -261,11 +341,21 @@
 
     StoriesController.prototype.deletePart = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
-        return story.deletePart(req.params.partid, _this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
+        return story.getPart(_this.getValue(req.params, 'partid'), function(err, part) {
+          return story.deletePart(_this.getValue(req.params, 'partid'), _this.getUserId(req), function() {
+            var change;
+            change = new models.Change();
+            change.story = story._oid();
+            change.type = "DELETE_PART";
+            change.user = _this.getUserId(req);
+            change.part = part;
+            return change.save(function() {
+              res.contentType('json');
+              return res.send({
+                success: true
+              });
+            });
           });
         });
       });
@@ -273,11 +363,18 @@
 
     StoriesController.prototype.publish = function(req, res, next) {
       var _this = this;
-      return models.Story.getById(req.params.storyid, function(err, story) {
+      return models.Story.getById(this.getValue(req.params, 'storyid'), function(err, story) {
         return story.publish(_this.getUserId(req), function() {
-          res.contentType('json');
-          return res.send({
-            success: true
+          var change;
+          change = new models.Change();
+          change.story = story._oid();
+          change.type = "PUBLISH_STORY";
+          change.user = _this.getUserId(req);
+          return change.save(function() {
+            res.contentType('json');
+            return res.send({
+              success: true
+            });
           });
         });
       });
@@ -287,16 +384,25 @@
       var targetPath,
         _this = this;
       if (req.files) {
-        targetPath = "./public/images/content/" + req.params.storyid + "_" + req.files.file.name;
+        targetPath = "./public/images/content/" + (this.getValue(req.params, 'storyid')) + "_" + req.files.file.name;
         return fs.rename(req.files.file.path, targetPath, function(err) {
-          return res.send("/public/images/content/" + req.params.storyid + "_" + req.files.file.name);
+          return res.send("/public/images/content/" + (_this.getValue(req.params, 'storyid')) + "_" + req.files.file.name);
         });
       }
     };
 
     StoriesController.prototype.getPartFromBody = function(body) {
       var part;
-      return part = new models.StoryPart(body);
+      part = new models.StoryPart();
+      part.type = body.type;
+      part.value = this.getValue(body, 'value');
+      if (body.type === 'HEADING') {
+        part.size = this.getValue(body, 'size');
+      }
+      if (body.type === "VIDEO") {
+        part.source = this.getValue(body, 'source');
+      }
+      return part;
     };
 
     return StoriesController;

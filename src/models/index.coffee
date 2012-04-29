@@ -4,6 +4,7 @@ StoryPart = require('./storypart').StoryPart
 StoryChange = require('./storychange').StoryChange
 Message = require('./message').Message
 Event = require('./event').Event
+Change = require('./change').Change
 
 class Models
     constructor: (@dbconf) ->
@@ -13,8 +14,9 @@ class Models
         @StoryChange = StoryChange
         @Message = Message
         @Event = Event
+        @Change = Change
         
-        @initModel(model) for model in [User, Story, StoryPart, StoryChange, Message, Event]
+        @initModel(model) for model in [User, Story, StoryPart, StoryChange, Message, Event, Change]
 
     initModel: (model) ->
         model._database = new (require '../common/database').Database(@dbconf)

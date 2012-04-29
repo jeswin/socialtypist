@@ -38,7 +38,7 @@
 
     AdminController.prototype.index = function(req, res, next) {
       var item, items, _i, _len, _ref;
-      if (req.query.adminKey !== conf.adminKey) {
+      if (this.getValue(req.query, 'adminKey') !== conf.adminKey) {
         return res.send({
           success: false,
           message: 'BAD_KEY'
@@ -84,7 +84,7 @@
         _this = this;
       if (req.session.admin) {
         fn = function() {
-          return models.Story.getById(req.body.storyid, function(err, story) {
+          return models.Story.getById(_this.getValue(req.body, 'storyid'), function(err, story) {
             var entry;
             entry = {
               type: 'FEATURED',
@@ -99,7 +99,7 @@
         };
         return database.findOne('sitesettings', {
           type: 'FEATURED',
-          storyid: req.body.storyid
+          storyid: this.getValue(req.body, 'storyid')
         }, function(err, item) {
           if (item != null) {
             return database.removeById('sitesettings', item._id, function() {
@@ -117,7 +117,7 @@
     AdminController.prototype.removeFeatured = function(req, res, next) {
       var _this = this;
       if (req.session.admin) {
-        return database.removeById('sitesettings', req.params.id, function() {
+        return database.removeById('sitesettings', this.getValue(req.params, 'id'), function() {
           return res.redirect('/admin/featured');
         });
       } else {

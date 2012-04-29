@@ -129,12 +129,20 @@
     return c.createMessage;
   }));
 
+  app.del('/stories/:storyid/messages/:messageid', findHandler('stories', function(c) {
+    return c.deleteMessage;
+  }));
+
   app.post('/stories/:storyid/authorRequest', findHandler('stories', function(c) {
     return c.authorRequest;
   }));
 
   app.post('/stories/:storyid/authors', findHandler('stories', function(c) {
     return c.addAuthor;
+  }));
+
+  app.del('/stories/:storyid/authors/:author', findHandler('stories', function(c) {
+    return c.removeAuthor;
   }));
 
   app.post('/stories/:storyid/parts', findHandler('stories', function(c) {

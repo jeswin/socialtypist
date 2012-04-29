@@ -78,8 +78,14 @@ class MessagesPane
                         messageListElem.children('li').last().find('.approve-author').click () =>
                             $.post "/stories/#{@story._id}/authors", { author: author }, (response) =>
                                 if response.success
-                                    @loadMessages()
+                                    $.delete_ "/stories/#{@story._id}/messages/#{message._id}", (response) =>
+                                        @loadMessages()
                             false
+                        messageListElem.children('li').last().find('.reject-author').click () =>
+                            $.delete_ "/stories/#{@story._id}/messages/#{message._id}", (response) =>
+                                @loadMessages()
+                            false
+
                             
                     else
                         messageListElem.append "

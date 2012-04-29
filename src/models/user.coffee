@@ -19,4 +19,16 @@ class User extends BaseModel
         super cb
 
 
+    getBasicInfo: () =>
+        return {
+            _id: @_id,
+            username: @username,
+            name: @name,
+            firstName: @firstName,
+            lastName: @lastName,
+            domain: @domain,
+            domainid: @domainid,
+            location: @location
+        }
+
 exports.User = User

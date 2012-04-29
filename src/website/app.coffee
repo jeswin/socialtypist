@@ -65,9 +65,11 @@ app.post '/stories/:storyid/fork', findHandler('stories', (c) -> c.fork)
 
 app.get '/stories/:storyid/messages', findHandler('stories', (c) -> c.messages)
 app.post '/stories/:storyid/messages', findHandler('stories', (c) -> c.createMessage)
+app.del '/stories/:storyid/messages/:messageid', findHandler('stories', (c) -> c.deleteMessage)
 app.post '/stories/:storyid/authorRequest', findHandler('stories', (c) -> c.authorRequest)
 
 app.post '/stories/:storyid/authors', findHandler('stories', (c) -> c.addAuthor)
+app.del '/stories/:storyid/authors/:author', findHandler('stories', (c) -> c.removeAuthor)
 
 app.post '/stories/:storyid/parts', findHandler('stories', (c) -> c.createPart)
 app.put '/stories/:storyid/parts/:partid', findHandler('stories', (c) -> c.updatePart)

@@ -99,7 +99,7 @@ class Story extends BaseModel
                         ((cb) =>
                             Story._models.User.getById userid, (err, user) =>
                                 user.ownedStories.push @_oid()
-                                @cache.owners.push user
+                                @cache.owners.push user.getBasicInfo()
                                 user.save () =>
                                     cb())
                         ((cb) =>
@@ -168,12 +168,12 @@ class Story extends BaseModel
             part.createdBy = userid
             part.story = @_oid()
             part.timestamp = new Date().getTime()
-            part.save () =>                        
+            part.save () =>  
                 insertAt = 0 #Will insert at 0 if no other location is found. But this is unlikely.                
                 if previousParts                    
                     for previous in previousParts
                         #Insert after the first found previous part.
-                        index = @parts.indexOf previous
+                        index = @parts.indexOf(previous)
                         if index != -1
                             insertAt = index + 1
                             break
@@ -183,6 +183,15 @@ class Story extends BaseModel
 
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
+
+
+    
+    getPart: (id, cb) =>
+        Story._models.StoryPart.getById id, (err, part) =>
+            if part.story is @_oid()
+                cb err, part
+            else
+                throw { type: "PART_NOT_IN_STORY", "The requested part is not in this story." }
 
     
     
@@ -198,7 +207,7 @@ class Story extends BaseModel
     
     deletePart: (part, userid, cb) =>
         if @isAuthor userid
-            index = @parts.indexOf part
+            index = @parts.indexOf(part)
             if index != -1
                 @parts.splice index, 1
                 @save userid, cb
@@ -209,8 +218,8 @@ class Story extends BaseModel
           
     addAuthor: (author, userid, cb) =>
         if @isOwner userid
-            #Confirm is not already an owner.
-            if @authors.indexOf author == -1
+            #Confirm if not already an owner.
+            if @authors.indexOf(author) == -1
                 Story._models.User.getById author, (err, user) =>
                     @authors.push author
                     @cache.authors.push user
@@ -223,7 +232,7 @@ class Story extends BaseModel
     removeAuthor: (author, userid, cb) =>
         if @isOwner userid
             #See if author is among authors
-            if @authors.indexOf author > -1
+            if @authors.indexOf(author) > -1
                 @authors = (u for u in @authors when u != author)
                 @cache.authors = (u for u in @cache.authors when u._id.toString() != author)
                 @save userid, cb
@@ -235,7 +244,7 @@ class Story extends BaseModel
     addOwner: (owner, userid, cb) =>
         if @isOwner userid
             #Confirm is not already an owner.
-            if @owners.indexOf owner == -1
+            if @owners.indexOf(owner) == -1
                 Story._models.User.getById author, (err, user) =>                    
                     @owners.push owner
                     @cache.owners.push user
@@ -248,7 +257,7 @@ class Story extends BaseModel
     removeOwner: (owner, userid, cb) =>
         if @isOwner userid
             #See if owner is among owners.
-            if @owners.indexOf owner > -1
+            if @owners.indexOf(owner) > -1
                 @owners = (u for u in @owners when u != owner)
                 @cache.owners = (u for u in @cache.owners when u._id.toString() != owner)
                 @save userid, cb
@@ -259,7 +268,7 @@ class Story extends BaseModel
     
     getMessages: (userid, cb) =>
         if @isAuthor userid
-            Story._models.Message.getAll { story: @_oid() }, (err, messages) =>
+            Story._models.Message.getAll { story: @_oid(), deleted: false }, (err, messages) =>
                 cb err, messages?.reverse()
         else
             throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
@@ -275,18 +284,28 @@ class Story extends BaseModel
                 message.from = userid
                 message.cache = { from: { domainid: user.domainid, name: user.name, location: user.location } }
                 message.story = @_oid()
+                message.deleted = false
                 message.save () =>
                     cb()
+        
+        
+    deleteMessage: (messageid, userid, cb) =>
+        if @isOwner userid
+            Story._models.Message.getById messageid, (err, message) =>
+                message.deleted = true
+                message.save cb
+        else
+            throw { type: 'NOT_OWNER', message: 'Only owners may delete a message.' }
         
     
     
     isAuthor: (userid) =>
-        @owners.indexOf userid > -1 or @authors.indexOf userid > -1
+        @owners.indexOf(userid) > -1 or @authors.indexOf(userid) > -1
             
             
         
     isOwner: (userid) =>
-        @owners.indexOf userid > -1
+        @owners.indexOf(userid) > -1
         
 
         

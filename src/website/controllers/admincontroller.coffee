@@ -12,7 +12,7 @@ class AdminController extends controller.Controller
 
 
     index: (req, res, next) =>
-        if  req.query.adminKey != conf.adminKey
+        if  @getValue(req.query, 'adminKey') != conf.adminKey
             res.send { success: false, message: 'BAD_KEY'}
         else
             req.session.admin = true
@@ -44,14 +44,14 @@ class AdminController extends controller.Controller
     addFeatured: (req, res, next) =>
         if req.session.admin
             fn = () =>
-                models.Story.getById req.body.storyid, (err, story) =>                
+                models.Story.getById @getValue(req.body, 'storyid'), (err, story) =>                
                     entry = { type: 'FEATURED', storyid: story._id.toString(), title: story.title, content: story.cache.html }
                     database.insert 'sitesettings', entry, () =>
                         res.redirect '/admin/featured'
 
         
             #if there is already such a thing, delete.
-            database.findOne 'sitesettings', { type: 'FEATURED', storyid: req.body.storyid }, (err, item) =>
+            database.findOne 'sitesettings', { type: 'FEATURED', storyid: @getValue(req.body, 'storyid') }, (err, item) =>
                 if item?
                     database.removeById 'sitesettings', item._id, () =>
                         fn()
@@ -64,7 +64,7 @@ class AdminController extends controller.Controller
         
     removeFeatured: (req, res, next) =>
         if req.session.admin
-            database.removeById 'sitesettings', req.params.id, () =>
+            database.removeById 'sitesettings', @getValue(req.params, 'id'), () =>
                 res.redirect '/admin/featured'
         else
             res.send 'No session.'

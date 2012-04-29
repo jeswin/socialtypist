@@ -26,6 +26,8 @@
 
       this.isAuthor = __bind(this.isAuthor, this);
 
+      this.deleteMessage = __bind(this.deleteMessage, this);
+
       this.addMessage = __bind(this.addMessage, this);
 
       this.getMessages = __bind(this.getMessages, this);
@@ -41,6 +43,8 @@
       this.deletePart = __bind(this.deletePart, this);
 
       this.updatePart = __bind(this.updatePart, this);
+
+      this.getPart = __bind(this.getPart, this);
 
       this.createPart = __bind(this.createPart, this);
 
@@ -201,7 +205,7 @@
             (function(cb) {
               return Story._models.User.getById(userid, function(err, user) {
                 user.ownedStories.push(_this._oid());
-                _this.cache.owners.push(user);
+                _this.cache.owners.push(user.getBasicInfo());
                 return user.save(function() {
                   return cb();
                 });
@@ -305,6 +309,20 @@
       }
     };
 
+    Story.prototype.getPart = function(id, cb) {
+      var _this = this;
+      return Story._models.StoryPart.getById(id, function(err, part) {
+        if (part.story === _this._oid()) {
+          return cb(err, part);
+        } else {
+          throw {
+            type: "PART_NOT_IN_STORY",
+            "The requested part is not in this story.": "The requested part is not in this story."
+          };
+        }
+      });
+    };
+
     Story.prototype.updatePart = function(part, userid, cb) {
       if (this.isAuthor(userid)) {
         part.updatedBy = userid;
@@ -337,7 +355,7 @@
     Story.prototype.addAuthor = function(author, userid, cb) {
       var _this = this;
       if (this.isOwner(userid)) {
-        if (this.authors.indexOf(author === -1)) {
+        if (this.authors.indexOf(author) === -1) {
           return Story._models.User.getById(author, function(err, user) {
             _this.authors.push(author);
             _this.cache.authors.push(user);
@@ -355,7 +373,7 @@
     Story.prototype.removeAuthor = function(author, userid, cb) {
       var u;
       if (this.isOwner(userid)) {
-        if (this.authors.indexOf(author > -1)) {
+        if (this.authors.indexOf(author) > -1) {
           this.authors = (function() {
             var _i, _len, _ref, _results;
             _ref = this.authors;
@@ -393,7 +411,7 @@
     Story.prototype.addOwner = function(owner, userid, cb) {
       var _this = this;
       if (this.isOwner(userid)) {
-        if (this.owners.indexOf(owner === -1)) {
+        if (this.owners.indexOf(owner) === -1) {
           return Story._models.User.getById(author, function(err, user) {
             _this.owners.push(owner);
             _this.cache.owners.push(user);
@@ -411,7 +429,7 @@
     Story.prototype.removeOwner = function(owner, userid, cb) {
       var u;
       if (this.isOwner(userid)) {
-        if (this.owners.indexOf(owner > -1)) {
+        if (this.owners.indexOf(owner) > -1) {
           this.owners = (function() {
             var _i, _len, _ref, _results;
             _ref = this.owners;
@@ -450,7 +468,8 @@
       var _this = this;
       if (this.isAuthor(userid)) {
         return Story._models.Message.getAll({
-          story: this._oid()
+          story: this._oid(),
+          deleted: false
         }, function(err, messages) {
           return cb(err, messages != null ? messages.reverse() : void 0);
         });
@@ -479,6 +498,7 @@
             }
           };
           message.story = _this._oid();
+          message.deleted = false;
           return message.save(function() {
             return cb();
           });
@@ -486,12 +506,27 @@
       }
     };
 
+    Story.prototype.deleteMessage = function(messageid, userid, cb) {
+      var _this = this;
+      if (this.isOwner(userid)) {
+        return Story._models.Message.getById(messageid, function(err, message) {
+          message.deleted = true;
+          return message.save(cb);
+        });
+      } else {
+        throw {
+          type: 'NOT_OWNER',
+          message: 'Only owners may delete a message.'
+        };
+      }
+    };
+
     Story.prototype.isAuthor = function(userid) {
-      return this.owners.indexOf(userid > -1 || this.authors.indexOf(userid > -1));
+      return this.owners.indexOf(userid) > -1 || this.authors.indexOf(userid) > -1;
     };
 
     Story.prototype.isOwner = function(userid) {
-      return this.owners.indexOf(userid > -1);
+      return this.owners.indexOf(userid) > -1;
     };
 
     Story.prototype.recreateCache = function() {};

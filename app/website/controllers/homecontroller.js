@@ -88,14 +88,11 @@
       }
       console.log('Adding an insecure session.');
       if (req.body.domain === 'facebook') {
-        if (!(req.body.userDetails.username != null)) {
-          req.body.userDetails.username = req.body.userDetails.name;
-        }
         return this.getOrCreateFBUser(req.body.userDetails, function(err, user) {
           req.session.authProvider = 'facebook';
           req.session.domainResponse = req.body.response;
           req.session.accessToken = req.body.response.authResponse.accessToken;
-          req.session.user = user;
+          req.session.user = user.getBasicInfo();
           res.contentType('json');
           return res.send({
             success: true

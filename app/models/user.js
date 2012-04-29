@@ -14,6 +14,8 @@
     User.name = 'User';
 
     function User() {
+      this.getBasicInfo = __bind(this.getBasicInfo, this);
+
       this.save = __bind(this.save, this);
       return User.__super__.constructor.apply(this, arguments);
     }
@@ -34,6 +36,19 @@
         this.cache = {};
       }
       return User.__super__.save.call(this, cb);
+    };
+
+    User.prototype.getBasicInfo = function() {
+      return {
+        _id: this._id,
+        username: this.username,
+        name: this.name,
+        firstName: this.firstName,
+        lastName: this.lastName,
+        domain: this.domain,
+        domainid: this.domainid,
+        location: this.location
+      };
     };
 
     return User;
