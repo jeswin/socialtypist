@@ -13,8 +13,11 @@
                 <ul class="simple-list">
                     {{#each stories}}
                         <li>
-                            <h4><a href="/stories/{{this._id}}">{{this.title}}</a></h4>
+                            <h4><a href="/stories/{{this._id}}">{{this.title}}</a> <span class="small light">{{this.created}}</span></h4> 
                             <p>
+                                <span class="iconic">
+                                    <img class="icon" src="http://graph.facebook.com/{{this.ownerdomainid}}/picture?type=square" /> {{this.ownername}} {{this.others}}
+                                </span>
                                 {{this.shortSummary}}
                             <p>
                         </li>

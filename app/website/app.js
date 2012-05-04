@@ -81,16 +81,16 @@
     return c.index;
   }));
 
+  app.get('/logout', findHandler('home', function(c) {
+    return c.logout;
+  }));
+
   app.post('/addSession', findHandler('home', function(c) {
     return c.addSession;
   }));
 
   app.post('/addSession_INSECURE', findHandler('home', function(c) {
     return c.addSession_INSECURE;
-  }));
-
-  app.get('/removeSession', findHandler('home', function(c) {
-    return c.removeSession;
   }));
 
   app.get('/stories/create', findHandler('stories', function(c) {

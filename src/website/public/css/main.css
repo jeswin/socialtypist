@@ -20,6 +20,7 @@ ul.action-list li { float: left; padding-right: 12px; padding-bottom: 6px; }
 .safe { color: #008800 }
 .unsafe { color: #880000 }
 .text-section { padding: 4px; background: #f6f6f6; margin: 4px; }
+.standout-text { border-radius: 4px; background: #eee; padding: 12px; }
 
 /* smaller screens lose background */
 .rpadded { margin-right: 28px !important }
@@ -121,9 +122,11 @@ ul.iconic-list li { list-style: none; margin:0; padding: 6px 0 2px 0; font-size:
 
 
 ul.simple-list { padding:0; margin: 0; }
-    ul.simple-list li { list-style: none }
-    ul.simple-list li h4 { font-family: 'Bitter', serif; }
-
+    ul.simple-list li { list-style: none; padding: 6px 0 6px 0; margin-bottom:12px; border-bottom: 1px solid #ddd }
+    ul.simple-list li h4 { font-family: 'Bitter', serif; margin-bottom: 4px; }
+    ul.simple-list img.icon { height: 24px; width: 24px; } 
+    ul.simple-list .iconic { display:block; padding: 2px 0 6px 12px; margin: 0 }
+    
 .section { margin-top: 20px; }
     .section h3 { line-height: 1; padding-bottom: 2px; }
 

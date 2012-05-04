@@ -1,3 +1,4 @@
+dateformatter = require '../../common/dateformatter'
 controller = require('./controller')
 dbconf = require '../../models/dbconf'
 models = new (require '../../models').Models(dbconf.default)
@@ -32,6 +33,17 @@ class StoriesController extends controller.Controller
         models.Story.getByUserId @getUserId(req), (err, stories) =>
             for story in stories
                 story.shortSummary = story.summary
+                story.created = dateformatter.format story.timestamp
+                story.ownerdomainid = story.cache.owners[0].domainid
+                story.ownername = story.cache.owners[0].name
+                if story.cache.authors.length
+                    if story.cache.authors.length < 5
+                        authors = (a.name for a in story.cache.authors).join(', ')
+                        story.others = "with #{authors}."
+                    else
+                        story.others = "with #{story.cache.authors.length} others."
+                else
+                    story.others = ''
             res.render 'stories/yours.hbs', { loginStatus: @getLoginStatus(req), stories: stories }
     
     
@@ -49,6 +61,7 @@ class StoriesController extends controller.Controller
         story.save @getUserId(req), () =>
             change = new models.Change()
             change.story = story._oid()
+            change.user = @getUser(req)
             change.type = "NEW_STORY"
             change.save () =>
                 res.redirect "/stories/#{story._id}/edit"
@@ -70,13 +83,13 @@ class StoriesController extends controller.Controller
             #Right now we only support updating the title.
             @setValues story, req.body, ['title', 'tags', 'slug', 'summary']
             story.save @getUserId(req), () =>
-
+                
                 change = new models.Change()
                 change.story = story._oid()
+                change.user = @getUser(req)
                 change.type = "UPDATE_STORY"
                 change.oldValue = oldStory
                 change.newValue = story
-
                 change.save () =>
                     res.contentType 'json'
                     res.send { success: true }          
@@ -112,6 +125,7 @@ class StoriesController extends controller.Controller
             story.addAuthor @getValue(req.body, 'author'), @getUserId(req), () =>                
                 change = new models.Change()
                 change.story = story._oid()
+                change.user = @getUser(req)
                 change.type = "ADD_AUTHOR"
                 change.author = @getValue(req.body, 'author')
                 change.save () =>
@@ -125,6 +139,7 @@ class StoriesController extends controller.Controller
             story.removeAuthor @getValue(req.params, 'author'), @getUserId(req), () =>
                 change = new models.Change()
                 change.story = story._oid()
+                change.user = @getUser(req)
                 change.type = "REMOVE_AUTHOR"
                 change.author = @getValue(req.body, 'author')
                 change.save () =>
@@ -156,7 +171,7 @@ class StoriesController extends controller.Controller
                 change = new models.Change()
                 change.story = story._oid()
                 change.type = "CREATE_PART"
-                change.user = @getUserId(req)
+                change.user = @getUser(req)
                 change.part = part
                 change.save () =>
                     res.contentType 'json'
@@ -175,7 +190,7 @@ class StoriesController extends controller.Controller
                     change = new models.Change()
                     change.story = story._oid()
                     change.type = "UPDATE_PART"
-                    change.user = @getUserId(req)
+                    change.user = @getUser(req)
                     change.oldValue = oldValue
                     change.newValue = newValue
                     change.save () =>
@@ -191,7 +206,7 @@ class StoriesController extends controller.Controller
                     change = new models.Change()
                     change.story = story._oid()
                     change.type = "DELETE_PART"
-                    change.user = @getUserId(req)
+                    change.user = @getUser(req)
                     change.part = part
                     change.save () =>
                         res.contentType 'json'
@@ -205,7 +220,7 @@ class StoriesController extends controller.Controller
                 change = new models.Change()
                 change.story = story._oid()
                 change.type = "PUBLISH_STORY"
-                change.user = @getUserId(req)
+                change.user = @getUser(req)
                 change.save () =>
                     res.contentType 'json'
                     res.send { success: true }   

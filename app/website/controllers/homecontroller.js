@@ -37,18 +37,23 @@
     }
 
     HomeController.prototype.index = function(req, res, next) {
-      var item, sitesettings, _i, _len;
+      var featuredStory, item, sitesettings;
       sitesettings = global.cachingWhale.items.sitesettings;
-      for (_i = 0, _len = sitesettings.length; _i < _len; _i++) {
-        item = sitesettings[_i];
-        if (item.type === 'FEATURED') {
-          res.render('home/index.hbs', {
-            loginStatus: this.getLoginStatus(req),
-            featuredStory: item.content
-          });
-          return;
+      featuredStory = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = sitesettings.length; _i < _len; _i++) {
+          item = sitesettings[_i];
+          if (item.type === 'FEATURED') {
+            _results.push(item.content);
+          }
         }
-      }
+        return _results;
+      })();
+      return res.render('home/index.hbs', {
+        loginStatus: this.getLoginStatus(req),
+        featuredStory: featuredStory
+      });
     };
 
     HomeController.prototype.addSession = function(req, res, next) {
@@ -131,12 +136,9 @@
       });
     };
 
-    HomeController.prototype.removeSession = function(req, res, next) {
+    HomeController.prototype.logout = function(req, res, next) {
       delete req.session.user;
-      res.contentType('json');
-      return res.send({
-        success: true
-      });
+      return res.redirect('/');
     };
 
     return HomeController;

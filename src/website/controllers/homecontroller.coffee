@@ -17,10 +17,8 @@ class HomeController extends controller.Controller
 
     index: (req, res, next) =>
         sitesettings = global.cachingWhale.items.sitesettings
-        for item in sitesettings        
-            if item.type is 'FEATURED'
-                res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req), featuredStory: item.content }
-                return
+        featuredStory = (item.content for item in sitesettings when item.type is 'FEATURED')        
+        res.render 'home/index.hbs', { loginStatus: @getLoginStatus(req), featuredStory: featuredStory }
         
 
     
@@ -85,11 +83,9 @@ class HomeController extends controller.Controller
     
             
             
-    removeSession: (req, res, next) ->
+    logout: (req, res, next) ->
         delete req.session.user
-        res.contentType 'json'
-        res.send { success: true }
-                
+        res.redirect '/'
                 
     
 exports.HomeController = HomeController

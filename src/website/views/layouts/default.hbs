@@ -23,8 +23,10 @@
         </script>
 
         <script>
-            $(document).ready(function() {
-                window._client = new SocialTypist.Client();         
+            window.postFBInitCallbacks = []
+            
+            $(document).ready(function() {            
+                window._client = new SocialTypist.Client();
                 initFaceBookSDK();   
             });
             
@@ -50,6 +52,10 @@
                         xfbml      : true,  // parse XFBML
                         oauth      : true
                     });                        
+
+                    //Not used currently. Lets pages set callbacks to fire after the FB SDK has finished loading.
+                    for(i = 0; i < window.postFBInitCallbacks.length; i++)
+                        window.postFBInitCallbacks[i]();
                 }
             }                       
         </script>

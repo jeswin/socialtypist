@@ -14,6 +14,8 @@
 
       this.getUserId = __bind(this.getUserId, this);
 
+      this.getUser = __bind(this.getUser, this);
+
     }
 
     Controller.prototype.getLoginStatus = function(req) {
@@ -22,13 +24,13 @@
         status = {
           loggedIn: true,
           js: "window.authProvider = '" + req.session.authProvider + "'; window.loggedIn = true; window.username = '" + req.session.user.username + "'; window.userid = '" + req.session.user._id + "';",
-          header: "<a class=\"logoutLink\" href=\"#\">Logout</a> <span class=\"username\">" + req.session.user.username + "</span>"
+          header: "<a class=\"logoutLink\" href=\"/logout\">Logout</a> <span class=\"username\">" + req.session.user.username + "</span>"
         };
       } else {
         status = {
           loggedIn: false,
           js: "window.loggedIn = false; window.username = null;window.userid = null;",
-          header: '<img src="/public/images/facebook.png" /><a class="fbLoginLink" href="#">Login</a>'
+          header: "<img src=\"/public/images/facebook.png\" /><a class=\"needs-session\" href=\"#\">Login</a>"
         };
       }
       return status;
@@ -39,14 +41,23 @@
         if (req.session.user != null) {
           return fn(req, res, next);
         } else {
-          return res.redirect('/login');
+          return res.redirect("/login?redirect=" + req.url);
         }
       };
     };
 
+    Controller.prototype.getUser = function(req) {
+      if (req.session.user != null) {
+        return req.session.user;
+      } else {
+        throw {
+          type: 'NOT_LOGGED_IN'
+        };
+      }
+    };
+
     Controller.prototype.getUserId = function(req) {
-      var _ref;
-      if ((_ref = req.session.user) != null ? _ref.username : void 0) {
+      if (req.session.user != null) {
         return req.session.user._id.toString();
       } else {
         throw {

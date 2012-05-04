@@ -40,7 +40,7 @@
 
     User.prototype.getBasicInfo = function() {
       return {
-        _id: this._id,
+        _id: this._id.toString(),
         username: this.username,
         name: this.name,
         firstName: this.firstName,

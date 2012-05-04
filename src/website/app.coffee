@@ -48,10 +48,9 @@ app.error (err, req, res, next) =>
 
 #all routes go here.
 app.get '/', findHandler('home', (c) -> c.index)
-
+app.get '/logout', findHandler('home', (c) -> c.logout)
 app.post '/addSession', findHandler('home', (c) -> c.addSession)
 app.post '/addSession_INSECURE', findHandler('home', (c) -> c.addSession_INSECURE)
-app.get '/removeSession', findHandler('home', (c) -> c.removeSession)
 
 app.get '/stories/create', findHandler('stories', (c) -> c.createForm)
 app.post '/stories', findHandler('stories', (c) -> c.create)

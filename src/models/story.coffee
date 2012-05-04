@@ -2,6 +2,7 @@ async = require 'async'
 BaseModel = require('./basemodel').BaseModel
 markdown = require("node-markdown").Markdown
 sanitize = require("../common/mdsanitizer").sanitize
+Exception = require("../common/exception").Exception
 
 class Story extends BaseModel
 
@@ -182,7 +183,7 @@ class Story extends BaseModel
                 @save userid, cb
 
         else
-            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
+            throw new Exception('NOT_AUTHOR', 'You are not an author on this story. Cannot modify.')
 
 
     
@@ -191,7 +192,7 @@ class Story extends BaseModel
             if part.story is @_oid()
                 cb err, part
             else
-                throw { type: "PART_NOT_IN_STORY", "The requested part is not in this story." }
+                throw new Exception("PART_NOT_IN_STORY", "The requested part(id:#{part._id}, story:#{part.story}) is not in this story.")
 
     
     
@@ -201,7 +202,7 @@ class Story extends BaseModel
             part.timestamp = new Date().getTime()
             part.save cb 
         else
-            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
+            throw new Exception('NOT_AUTHOR', 'You are not an author on this story. Cannot modify.')
     
     
     
@@ -212,7 +213,7 @@ class Story extends BaseModel
                 @parts.splice index, 1
                 @save userid, cb
         else
-            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot modify.' }
+            throw new Exception('NOT_AUTHOR', 'You are not an author on this story. Cannot modify.')
         
     
           
@@ -225,7 +226,7 @@ class Story extends BaseModel
                     @cache.authors.push user
                     @save userid, cb
         else
-            throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
+            throw new Exception('NOT_OWNER', 'You do not own this story. Cannot modify.')
 
 
 
@@ -237,7 +238,7 @@ class Story extends BaseModel
                 @cache.authors = (u for u in @cache.authors when u._id.toString() != author)
                 @save userid, cb
         else
-            throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
+            throw new Exception('NOT_OWNER', 'You do not own this story. Cannot modify.')
 
 
 
@@ -250,7 +251,7 @@ class Story extends BaseModel
                     @cache.owners.push user
                     @save userid, cb
         else
-            throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
+            throw new Exception('NOT_OWNER', 'You do not own this story. Cannot modify.')
 
 
 
@@ -262,7 +263,7 @@ class Story extends BaseModel
                 @cache.owners = (u for u in @cache.owners when u._id.toString() != owner)
                 @save userid, cb
         else
-            throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
+            throw new Exception('NOT_OWNER', 'You do not own this story. Cannot modify.')
 
 
     
@@ -271,7 +272,7 @@ class Story extends BaseModel
             Story._models.Message.getAll { story: @_oid(), deleted: false }, (err, messages) =>
                 cb err, messages?.reverse()
         else
-            throw { type: 'NOT_AUTHOR', message: 'You are not an author on this story. Cannot fetch.' }
+            throw new Exception('NOT_AUTHOR', 'You are not an author on this story. Cannot fetch.')
             
     
     
@@ -295,7 +296,7 @@ class Story extends BaseModel
                 message.deleted = true
                 message.save cb
         else
-            throw { type: 'NOT_OWNER', message: 'Only owners may delete a message.' }
+            throw new Exception('NOT_OWNER', 'Only owners may delete a message.')
         
     
     

@@ -1,18 +1,13 @@
-<script>
-    $(document).ready(function() {
-        _client.makeRestrictedLink('/stories/create', '.main-links .write');
-    });
-</script>
 <div class="container home">
     <h1><a href="/">Social Typist</a></h1>
     <p class="desc">Collaborative Writing.</p>
     <p class="main-links">
-        <a class="read" href="#">Read stories</a>
+        <a href="#">Read stories</a>
         {{#if loginStatus.loggedIn}}
-        | <a class="your-stories" href="/stories/yours">Your stories</a> 
-        | <a class="messages" href="/messages">Messages</a>
+        | <a href="/stories/yours">Your stories</a> 
+        | <a href="/messages">Messages</a>
         {{/if}}
-        | <a class="create-story" href="/stories/create">Write a story</a>
+        | <a class="needs-session" href="/stories/create">Write a story</a>
     </p>
     <div class="content-area row">
         <div class="content-pane wide featured span8">

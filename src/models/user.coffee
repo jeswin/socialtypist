@@ -21,7 +21,7 @@ class User extends BaseModel
 
     getBasicInfo: () =>
         return {
-            _id: @_id,
+            _id: @_id.toString(),
             username: @username,
             name: @name,
             firstName: @firstName,
