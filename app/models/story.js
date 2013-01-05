@@ -235,10 +235,7 @@
           this.title = sanitize(this.title, allowedTags, allowedAttributes);
           return Story.__super__.save.call(this, cb);
         } else {
-          throw {
-            type: 'NOT_OWNER',
-            message: 'You do not own this story. Cannot modify.'
-          };
+          throw new Exception('NOT_OWNER', 'You do not own this story. Cannot modify.');
         }
       }
     };
@@ -345,7 +342,7 @@
     Story.prototype.addAuthor = function(author, userid, cb) {
       var _this = this;
       if (this.isOwner(userid)) {
-        if (this.authors.indexOf(author) === -1) {
+        if (this.authors.indexOf(author) === -1 && this.owners.indexOf(author) === -1) {
           return Story._models.User.getById(author, function(err, user) {
             _this.authors.push(author);
             _this.cache.authors.push(user);

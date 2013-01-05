@@ -1,3 +1,5 @@
+Exception = require('../../common/exception').Exception
+
 class Controller        
     constructor: () ->
     
@@ -29,7 +31,7 @@ class Controller
         if req.session.user?
             return req.session.user
         else
-            throw { type: 'NOT_LOGGED_IN' }
+            throw new Exception 'NOT_LOGGED_IN', ''
 
         
         
@@ -37,7 +39,7 @@ class Controller
         if req.session.user?
             return req.session.user._id.toString()
         else
-            throw { type: 'NOT_LOGGED_IN' }
+            throw new Exception 'NOT_LOGGED_IN', ''
         
         
         

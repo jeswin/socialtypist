@@ -123,7 +123,7 @@ class Story extends BaseModel
                 @title = sanitize @title, allowedTags, allowedAttributes
                 super cb
             else
-                throw { type: 'NOT_OWNER', message: 'You do not own this story. Cannot modify.' }
+                throw new Exception 'NOT_OWNER', 'You do not own this story. Cannot modify.'
 
             
             
@@ -219,8 +219,8 @@ class Story extends BaseModel
           
     addAuthor: (author, userid, cb) =>
         if @isOwner userid
-            #Confirm if not already an owner.
-            if @authors.indexOf(author) == -1
+            #Confirm if not already an author or owner.
+            if @authors.indexOf(author) == -1 and @owners.indexOf(author) == -1
                 Story._models.User.getById author, (err, user) =>
                     @authors.push author
                     @cache.authors.push user

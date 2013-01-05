@@ -62,6 +62,8 @@ app.put '/stories/:storyid', findHandler('stories', (c) -> c.update)
 
 app.post '/stories/:storyid/fork', findHandler('stories', (c) -> c.fork)
 
+app.get '/stories/:storyid/history', findHandler('stories', (c) -> c.history)
+
 app.get '/stories/:storyid/messages', findHandler('stories', (c) -> c.messages)
 app.post '/stories/:storyid/messages', findHandler('stories', (c) -> c.createMessage)
 app.del '/stories/:storyid/messages/:messageid', findHandler('stories', (c) -> c.deleteMessage)

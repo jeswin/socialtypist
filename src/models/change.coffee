@@ -6,6 +6,12 @@ class Change extends BaseModel
         type: Change,
         collection: 'changes'
     }
+    
+    
+    save: (cb) =>
+        @timestamp = new Date().getTime()
+        super cb
+        
 
 
 exports.Change = Change

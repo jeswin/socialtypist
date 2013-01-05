@@ -4,6 +4,7 @@ database = new (require '../../common/database').Database(dbconf.default)
 models = new (require '../../models').Models(dbconf.default)
 querystring = require 'querystring'
 FaceBookClient = require('../../common/facebookclient').FaceBookClient
+Exception = require('../../common/exception').Exception
 
 FACEBOOK_APP_ID = '259516830808506'
 FACEBOOK_SECRET = '5402abb9c3003f767889e57e00f2b499'
@@ -42,7 +43,7 @@ class HomeController extends controller.Controller
 
     addSession_INSECURE: (req, res, next) =>
         if require('../conf').deployment != 'DEBUG'
-            throw { type: 'BAD_MODE', message: 'This insecure function is callable only in debug mode.' }
+            throw new Exception 'BAD_MODE', 'This insecure function is callable only in debug mode.'
 
         console.log 'Adding an insecure session.'
 

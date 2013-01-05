@@ -38,7 +38,7 @@ class StoriesController extends controller.Controller
                 story.ownername = story.cache.owners[0].name
                 if story.cache.authors.length
                     if story.cache.authors.length < 5
-                        authors = (a.name for a in story.cache.authors).join(', ')
+                        authors = ("<a href=\"/authors/#{a._id}/stories\">#{a.name}</a>" for a in story.cache.authors).join(', ')
                         story.others = "with #{authors}."
                     else
                         story.others = "with #{story.cache.authors.length} others."
@@ -162,6 +162,13 @@ class StoriesController extends controller.Controller
                 res.contentType 'json'
                 res.send { success: true, forkedStory: forked._id }   
                 
+
+
+    history: (req, res, next) =>
+        models.Change.getAll { story: @getValue(req.params, 'storyid') }, (err, changes) =>
+            res.contentType 'json'
+            res.send { success:true, changes: changes }
+
           
     
     createPart: (req, res, next) =>
@@ -245,6 +252,9 @@ class StoriesController extends controller.Controller
             part.source = @getValue body, 'source'
         return part
        
+       
+       
+
             
     
 exports.StoriesController = StoriesController

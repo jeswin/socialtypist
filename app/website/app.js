@@ -121,6 +121,10 @@
     return c.fork;
   }));
 
+  app.get('/stories/:storyid/history', findHandler('stories', function(c) {
+    return c.history;
+  }));
+
   app.get('/stories/:storyid/messages', findHandler('stories', function(c) {
     return c.messages;
   }));

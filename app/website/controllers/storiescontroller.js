@@ -34,6 +34,8 @@
 
       this.createPart = __bind(this.createPart, this);
 
+      this.history = __bind(this.history, this);
+
       this.fork = __bind(this.fork, this);
 
       this.createMessage = __bind(this.createMessage, this);
@@ -132,7 +134,7 @@
                 _results = [];
                 for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                   a = _ref[_j];
-                  _results.push(a.name);
+                  _results.push("<a href=\"/authors/" + a._id + "/stories\">" + a.name + "</a>");
                 }
                 return _results;
               })()).join(', ');
@@ -313,6 +315,19 @@
             success: true,
             forkedStory: forked._id
           });
+        });
+      });
+    };
+
+    StoriesController.prototype.history = function(req, res, next) {
+      var _this = this;
+      return models.Change.getAll({
+        story: this.getValue(req.params, 'storyid')
+      }, function(err, changes) {
+        res.contentType('json');
+        return res.send({
+          success: true,
+          changes: changes
         });
       });
     };
